@@ -8,7 +8,7 @@
 // define Matrix struct
 typedef struct {
     // initalize for the playable 2D matrix grid 20 rows x 10 columns
-    unsigned char cell[20][10];
+    unsigned char cell[MATRIX_ROWS][MATRIX_COLS];
 } Matrix;
 
 // define any functions related to Matrix struct
