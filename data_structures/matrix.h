@@ -34,3 +34,14 @@ void create_matrix(Matrix *gameGrid);
 
 */  
 void output_matrix(Matrix *gameGrid);
+
+/*----- Function: clear_full_lines -----
+
+ PURPOSE: 
+
+ INPUT: 
+
+ OUTPUT:
+
+*/ 
+
