@@ -71,3 +71,4 @@ void drop_rows_down(Matrix *gameGrid);
 
 _Bool check_game_over(Matrix *gameGrid);
 
+void lock_piece(Matrix *board, const Tetromino *piece);

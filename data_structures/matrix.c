@@ -6,6 +6,7 @@
 
 // necessary includes:
 #include "matrix.h"
+#include "tetromino.h"
 #include <stdio.h>
 
 int main() {
@@ -114,4 +115,20 @@ _Bool check_game_over(Matrix *gameGrid) {
         }
     }
     return 0; // game continues
+}
+
+void lock_piece(Matrix *board, const Tetromino *piece) {
+    for (int pRow = 0; pRow < 4; pRow++) {
+        for (int pCol = 0; pCol <4; pCol++) {
+
+            if(get_cell(piece, pRow, pCol) == 0) {
+                continue;
+            }
+
+            int board_row = pRow + piece->row;
+            int board_col = pCol + piece->col;
+
+            board->cell[board_row][board_col] = 1;
+        }
+    }
 }
