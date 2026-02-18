@@ -19,7 +19,7 @@ typedef struct {
 
  INPUT: gameGrid ptr of "Matrix" struct type
 
- OUTPUT: returns a ptr pointing to an empty 2D matrix[20][10] i.e 2D array filled with 0s
+ OUTPUT: indirectly returns a ptr pointing to an empty 2D matrix[20][10] i.e 2D array filled with 0s
 
 */  
 void create_matrix(Matrix *gameGrid);
@@ -37,11 +37,37 @@ void output_matrix(Matrix *gameGrid);
 
 /*----- Function: clear_full_lines -----
 
- PURPOSE: 
+ PURPOSE: detect if any rows are completely full of 1s (row of 1s = line clear)
 
- INPUT: 
+ INPUT: current Tetris gameGrid i.e --> current Matrix state
 
- OUTPUT:
-
+ OUTPUT: unsigned integer that will communicate with update_score() and update_level()
+            i.e return value here will add Tetris difficulty scaling based on line clears
 */ 
+
+unsigned int clear_full_lines(Matrix *gameGrid);
+
+/*----- Function: drop_rows_down -----
+
+ PURPOSE: "squishes" non-Empty rows DOWN to the bottom of grid, fills the upper rows with 0s
+
+ INPUT: Matrix state RIGHT after clear_full_lines() is finished running
+
+ OUTPUT: Matrix that is has non-Empty rows shifted down, and the upper rows are empty
+            
+*/ 
+
+void drop_rows_down(Matrix *gameGrid);
+
+/*----- Function: check_game_over -----
+
+ PURPOSE: in Matrix scope, detects if the game is over (yes if a new piece exceeds Matrix boundaries)
+
+ INPUT: Current Matrix state of the Tetris gameGrid
+
+ OUTPUT: true or false if the game is over or not
+            
+*/ 
+
+_Bool check_game_over(Matrix *gameGrid);
 
