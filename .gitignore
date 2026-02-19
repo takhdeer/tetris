@@ -1,2 +1,8 @@
 #gitignore file for tetronas
+
+#executable test files
 test_initial_state.exe
+test_movement.exe
+
+#macos cache files
+.DS_Store

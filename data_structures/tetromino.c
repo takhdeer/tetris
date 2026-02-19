@@ -1,5 +1,11 @@
 #include "tetromino.h"
-
+#define TETRIMINO_I 0
+#define TETRIMINO_O 1
+#define TETRIMINO_T 2
+#define TETRIMINO_Z 3
+#define TETRIMINO_S 4
+#define TETRIMINO_L 5
+#define TETRIMINO_J 6
 //done by Aaron
 
 const int tetromino_shapes[7][4][4][4] = {
