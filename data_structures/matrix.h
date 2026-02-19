@@ -4,6 +4,7 @@
 // define required constants to set matrix boundaries
 #define MATRIX_ROWS 20
 #define MATRIX_COLS 10
+#include "tetromino.h"
 
 // define Matrix struct
 typedef struct {
@@ -69,6 +70,6 @@ void drop_rows_down(Matrix *gameGrid);
             
 */ 
 
-_Bool check_game_over(Matrix *gameGrid);
+// _Bool check_game_over(Matrix *gameGrid);
 
 void lock_piece(Matrix *board, const Tetromino *piece);

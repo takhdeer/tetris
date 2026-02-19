@@ -1,7 +1,7 @@
-#include "game_state.h"
+#include "../game_state.h"
 #include "matrix.h"
 #include "tetromino.h"
-#include "types.h"
+#include "../types.h"
 
 typedef struct
 {
