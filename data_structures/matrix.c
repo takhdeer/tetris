@@ -9,20 +9,22 @@
 #include "tetromino.h"
 #include <stdio.h>
 
-int main() {
-    printf("hello world\n");
+// int main() {
+//     printf("hello world\n");
     
-    Matrix gameGrid;                // create instance of Matrix struct "gameGrid" on stack  
+//     Matrix gameGrid;                // create instance of Matrix struct "gameGrid" on stack  
 
-    create_matrix(&gameGrid);       // initializes an EMPTY Matrix grid
-    output_matrix(&gameGrid);
-
-
+//     create_matrix(&gameGrid);       // initializes an EMPTY Matrix grid
+//     output_matrix(&gameGrid);
 
 
 
-    return 0;
-}
+
+
+//     return 0;
+// }
+
+//Commented out these because it wouldn't let me use it for the collision test. -Aaron
 
 // function implementations related to Matrix struct
 
