@@ -14,7 +14,7 @@ typedef struct GameState {
     UINT8   is_game_over;
 } GameState;
 
-extern GameState initial_game_state;
+void init_game_state(GameState *gameState, UINT16 score, UINT8 game_over);
 
 UINT16 map_line_base(const UINT16 lines_cleared);
 void update_state(GameState *state, UINT16 lines_cleared);

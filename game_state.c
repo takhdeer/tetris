@@ -1,12 +1,12 @@
 #include "types.h"
 #include "game_state.h"
 
-GameState initial_game_state = {
-    .score = 0,
-    .level = 1,
-    .lines_cleared = 0,
-    .is_game_over = 0,
-};
+void init_game_state(GameState *gameState, UINT16 score, UINT8 game_over) {
+    gameState->score = score;
+    gameState->level = 1; 
+    gameState->lines_cleared = 0;
+    gameState->is_game_over = game_over;
+}
 
 UINT16 map_line_base(const UINT16 lines_cleared) {
     if (lines_cleared == 1)
