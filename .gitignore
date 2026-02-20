@@ -3,6 +3,6 @@
 #executable test files
 test_game_state.exe
 test_movement.exe
-
+test_collision.exe
 #macos cache files
 .DS_Store
