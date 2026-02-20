@@ -27,8 +27,8 @@ UINT16 check_collision(const Matrix *board, const Tetromino *piece, int offset_x
                 continue;   // allows for the spawning of blocks aboove screen
             }
 
-            else if (board->cell[board_row][board_col] != 1) {
-                return 1;   //locked peice already present
+            else if (board->cell[board_row][board_col] == 1) {
+                return 1;   //locked piece already present
             }
         }
     }

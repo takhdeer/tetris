@@ -1,4 +1,4 @@
-//Done by Aaron
+// Author: Aaron
 
 #ifndef NEXT_BOX_H
 #define NEXT_BOX_H

@@ -1,5 +1,5 @@
 
-// Done by Aaron
+// Author: Aaron
 
 // CONSTANTS
 #ifndef TETROMINO_H
@@ -24,6 +24,7 @@ typedef struct {
 } Tetromino;
 
 extern const int tetromino_shapes[7][4][4][4];
+// For reference: tetromino_shapes[type][rotation][row][col]
 
 //Behaviour functions
 void init_tetromino(Tetromino *piece, int type, int spawn_col);
