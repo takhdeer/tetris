@@ -33,7 +33,17 @@ void clear_region(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 wi
 }
 
 void plot_pixel(UINT8 *base, UINT16 row, UINT16 col) {
+    UINT8 *byte_address;
+    UINT8 bit_offset;
 
+    // Byte address calculation
+    byte_address = base + (UINT32)row * BYTES_PER_ROW + (col >> 3);
+
+    // Bit offset calculation
+    bit_offset = col % 8;
+
+    //Setting pixel
+    *byte_address |= (0x80 >> bit_offset);
 }
 
 void plot_horizontal_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length) {
@@ -41,7 +51,12 @@ void plot_horizontal_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length) {
 }
 
 void plot_vertical_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length) {
+    // Using plot_pixel to create vertical line
+    UINT16 i;
+    for (i = 0 ; i < length ; i++) {
+        plot_pixel((UINT8 *)base, row + i, col);    // wraps around
 
+    }
 }
 
 void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width) {
@@ -65,18 +80,11 @@ void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 
 }
 
 void plot_square(UINT32 *base, UINT16 row, UINT16 col, UINT16 side) {
-
+    // Using plot_rectangle to create square
+    plot_rectangle(base, row, col, side, side); // length == width
 }
 
 void plot_triangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 base, UINT16 height, UINT8 direction) {
-
-}
-
-void plot_square(UINT32 *base, UINT16 row, UINT16 col, UINT16 side) {
-
-}
-
-void plot_triangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 base, UINT16 height, UINT8 direction){
 
 }
 
@@ -84,8 +92,23 @@ void plot_bitmap_8(UINT8 *base, UINT16 row, UINT16 col, UINT16 height) {
 
 }
 
-void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height){
+void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height, UINT16 *bitmap){
 
+    UINT8 *byte_base = (UINT8 *) base;
+    UINT16  r, b;
+    UINT16  word;
+    UINT16  mask;
+
+    for (r = 0 ; r < height ; r++) {
+        word = bitmap[r];
+        mask = 0x8000; // leftmost bit
+
+        for (b = 0 ; b < 16 ; b++) {
+            if (word & mask) 
+                plot_pixel(byte_base, row + r, col + b);
+            mask >>= 1;
+        }
+    }
 }
 
 void plot_bitmap_32(UINT32 *base, UINT16 row, UINT16 col, UINT16 height, const UINT32 *bitmap){

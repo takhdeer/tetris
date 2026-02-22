@@ -149,7 +149,7 @@ void plot_bitmap_8(UINT8 *base, UINT16 row, UINT16 col, UINT16 height);
 
  OUTPUT: None
 */
-void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height);
+void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height, UINT16 *bitmap);
 
 
 /*----- Function: plot_bitmap_32 -----
