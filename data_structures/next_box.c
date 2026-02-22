@@ -1,4 +1,6 @@
-//Done by Aaron
+// File: next_box.c
+// Function implementations to next_box.h.
+// Author: Aaron
 
 #include "next_box.h"
 

@@ -1,7 +1,7 @@
-
+// File: tetromino.h
+// Header File for tetromino.
 // Author: Aaron
 
-// CONSTANTS
 #ifndef TETROMINO_H
 #define TETROMINO_H
 
@@ -14,7 +14,7 @@
 #define TETROMINO_L 5
 #define TETROMINO_J 6
  
-// Tetromino struct
+// Tetromino structure
 typedef struct {
     int type;
     int row;
@@ -26,12 +26,64 @@ typedef struct {
 extern const int tetromino_shapes[7][4][4][4];
 // For reference: tetromino_shapes[type][rotation][row][col]
 
-//Behaviour functions
+//BEHAVIOUR FUNCTIONS
+
+/*----- Function: init_tetromino -----
+ PURPOSE: Initializes a tetromino.
+
+ INPUT: piece: pointer to the tetromino that is being intialized.
+        type: the tetromino type being intialized.
+        spawn_col: the column position to spawn (typically center of matrix).
+
+ OUTPUT: None
+*/
 void init_tetromino(Tetromino *piece, int type, int spawn_col);
+
+/*----- Function: move_tetromino_left -----
+ PURPOSE: Moves tetromino to the left by one cell.
+
+ INPUT: piece: pointer to the tetromino that is moving to the left.
+
+ OUTPUT: None
+*/
 void move_tetromino_left(Tetromino *piece);
+
+/*----- Function: move_tetromino_right -----
+ PURPOSE: Moves tetromino to the right by one cell.
+
+ INPUT: piece: pointer to the tetromino that is moving to the right.
+
+ OUTPUT: None
+*/
 void move_tetromino_right(Tetromino *piece);
+
+/*----- Function: move_tetromino_down -----
+ PURPOSE: Moves tetromino down by one cell.
+
+ INPUT: piece: pointer to the tetromino that is moving down.
+
+ OUTPUT: None
+*/
 void move_tetromino_down(Tetromino *piece);
+
+/*----- Function: rotate_tetromino_cw -----
+ PURPOSE: Shifts the tetromino on 90 degrees clockwise (relative to the piece's rotation).
+
+ INPUT: piece: pointer to the tetromino that is rotating.
+
+ OUTPUT: None
+*/
 void rotate_tetromino_cw(Tetromino *piece);
+
+/*----- Function: get_cell -----
+ PURPOSE: Tells whether a specified cell is empty or occupied.
+
+ INPUT: piece: pointer to the Tetromino to "investigate".
+        local_row: row within the 4x4 box.
+        local_col: column within the 4x4 box.
+
+ OUTPUT: 1 = occupied, 0 = empty.
+*/
 int get_cell(const Tetromino *piece, int local_row, int local_col);
 
 #endif 
