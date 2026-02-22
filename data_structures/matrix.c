@@ -9,22 +9,8 @@
 #include "tetromino.h"
 #include <stdio.h>
 
-// int main() {
-//     printf("hello world\n");
-    
-//     Matrix gameGrid;                // create instance of Matrix struct "gameGrid" on stack  
-
-//     create_matrix(&gameGrid);       // initializes an EMPTY Matrix grid
-//     output_matrix(&gameGrid);
-
-
-
-
-
-//     return 0;
-// }
-
 //Commented out these because it wouldn't let me use it for the collision test. -Aaron
+// gotchu i js moved the main() from here into "test_matrix.c"
 
 // function implementations related to Matrix struct
 
@@ -110,7 +96,8 @@ void drop_rows_down(Matrix *gameGrid) {
     }
 }
 
-/* _Bool check_game_over(Matrix *gameGrid) {
+/*
+_Bool check_game_over(Matrix *gameGrid) {
     for (int c = 0; c < MATRIX_COLS; c++) {
         if (gameGrid->cell[0][c] == 1) {
             return 1; // game over
@@ -118,8 +105,8 @@ void drop_rows_down(Matrix *gameGrid) {
     }
     return 0; // game continues
 }
+*/
 
-*/ 
 void lock_piece(Matrix *board, const Tetromino *piece) {
     for (int pRow = 0; pRow < 4; pRow++) {
         for (int pCol = 0; pCol <4; pCol++) {
