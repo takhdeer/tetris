@@ -1,3 +1,5 @@
+// File: test_collision.c
+// Test driver for collisions.
 // Author: Aaron
 
 #include <stdio.h>
@@ -48,6 +50,7 @@ int main() {
     }
 
     // Locked piece collision test:
+    
     // Filling in cells in the middle of the board
     board.cell[18][4] = 1;
     board.cell[18][5] = 1;
