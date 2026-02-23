@@ -121,4 +121,4 @@ void lock_piece(Matrix *board, const Tetromino *piece) {
             board->cell[board_row][board_col] = 1;
         }
     }
-}
+} 
