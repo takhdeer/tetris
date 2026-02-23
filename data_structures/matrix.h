@@ -75,6 +75,9 @@ void drop_rows_down(Matrix *gameGrid);
 
 // _Bool check_game_over(Matrix *gameGrid);
 
+/*
+    Updates the matrix with a specific tetrimino so it is now fixed in that spot
+ */
 void lock_piece(Matrix *board, const Tetromino *piece);
 
 #endif
