@@ -12,4 +12,7 @@ typedef struct
 
 extern Model initial_model;
 
+/*
+    Initializes the model for the game
+*/
 void init_model(Model *model);

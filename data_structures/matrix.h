@@ -12,7 +12,7 @@
 // define Matrix struct
 typedef struct {
     // initalize for the playable 2D matrix grid 20 rows x 10 columns
-    unsigned char cell[MATRIX_ROWS][MATRIX_COLS];
+    UINT8 cell[MATRIX_ROWS][MATRIX_COLS];
 } Matrix;
 
 // define any functions related to Matrix struct
@@ -49,7 +49,7 @@ void output_matrix(Matrix *gameGrid);
             i.e return value here will add Tetris difficulty scaling based on line clears
 */ 
 
-unsigned int clear_full_lines(Matrix *gameGrid);
+UINT16 clear_full_lines(Matrix *gameGrid);
 
 /*----- Function: drop_rows_down -----
 

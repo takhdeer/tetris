@@ -7,6 +7,7 @@
 // necessary includes:
 #include "matrix.h"
 #include "tetromino.h"
+#include "../types.h"
 #include <stdio.h>
 
 //Commented out these because it wouldn't let me use it for the collision test. -Aaron
@@ -31,12 +32,12 @@ void output_matrix(Matrix *gameGrid) {
     }
 }
 
-unsigned int clear_full_lines(Matrix *gameGrid) {
+UINT16 clear_full_lines(Matrix *gameGrid) {
     // Tetris game difficulty scaling based on # of lines were cleared in this Current Matrix
-    unsigned int lines_cleared = 0;
+    UINT16 lines_cleared = 0;
     
     // detect if an individual cell == filled cell --> i.e cell = 1
-    unsigned int filled_cell_count = 0;
+    UINT16 filled_cell_count = 0;
 
     for (int r = 0; r < MATRIX_ROWS; r++) {
         for (int c = 0; c < MATRIX_COLS; c++) {
