@@ -23,7 +23,7 @@ typedef struct {
 void init_next_box(NextBox *box, int type);
 
 /*----- Function: get_next_type -----
- PURPOSE: To check the tetromino type inside of the next box.
+ PURPOSE: Check the tetromino type inside of the next box.
 
  INPUT: box: pointer to the NextBox to check.
 
