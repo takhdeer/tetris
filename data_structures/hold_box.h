@@ -13,15 +13,27 @@ typedef struct {
 
 // behaviour functions
 
+/*----- Function: init_hold_box -----
+
+ PURPOSE: initalizes the HoldBox values to that of an Empty HoldBox
+
+ INPUT: HoldBox variable
+  
+ OUTPUT: nothing but directly modifying the HoldBox via pass by ref
+
+*/
+
+void init_hold_box(HoldBox *heldbox);
+
 /*----- Function: hold_box_contains -----
 
  PURPOSE: check if HoldBox actually contains a Tetromino or not
 
  INPUT: HoldBox, accessed directly via pass by ref
-
+  
  OUTPUT: a "boolean" flag i.e a unsigned integer, 0 = false and 1 = true
 
-*/  
+*/
 
 unsigned int hold_box_contains(HoldBox *heldbox);
 
@@ -47,6 +59,6 @@ Tetromino hold_tetromino(HoldBox *heldbox, Tetromino *piece);
 
 */ 
 
-Tetromino release_tetromino(HoldBox *heldbox, Tetromino *piece);
+Tetromino release_tetromino(HoldBox *heldbox);
 
 #endif
