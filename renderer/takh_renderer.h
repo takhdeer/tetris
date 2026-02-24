@@ -1,6 +1,6 @@
 #include "cond.h"
-#include "raster.h"
-#include "data_structures/tetromino.h"
+#include "raster_graphics_library/raster.h"
+#include "../data_structures/tetromino.h"
 
 #define BLOCK_SIZE 16
 

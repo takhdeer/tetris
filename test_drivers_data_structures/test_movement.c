@@ -1,6 +1,6 @@
 // #include "data_structures/tetromino.h"
-#include "data_structures/model.h"
-#include "data_structures/tetromino.h"
+#include "../model.h"
+#include "../data_structures/tetromino.h"
 #include <stdio.h>
 
 int main() {

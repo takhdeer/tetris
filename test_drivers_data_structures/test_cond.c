@@ -1,5 +1,5 @@
 #include "cond.h"
-#include "data_structures/tetromino.h"
+#include "../data_structures/tetromino.h"
 
 #include <stdio.h>
 int main() {

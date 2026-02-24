@@ -1,6 +1,6 @@
-#include "data_structures/model.h"
-#include "game_state.h"
-#include "data_structures/tetromino.h"
+#include "../model.h"
+#include "../game_state.h"
+#include "../data_structures/tetromino.h"
 #include <stdio.h>
 
 int main () {
