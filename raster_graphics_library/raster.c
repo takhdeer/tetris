@@ -1,5 +1,5 @@
 #include "raster.h"
-#include "types.h"
+#include "../types.h"
 
 // Screen dimensions
 #define SCREEN_WIDTH 640
@@ -119,8 +119,7 @@ static const UINT8 font_table[96][FONT_ROWS] = {
  OUTPUT:  ptr to array of FONT_ROWS bytes representing the glyph
  NOTES:   helper related to raster.h subroutines characters outside ASCII 32-127 return the space glyph
 */
-static const UINT8 *get_glyph(char ch)
-{
+static const UINT8 *get_glyph(char ch) {
     unsigned char idx = (unsigned char)ch;
     if (idx < 32 || idx > 127) idx = 32;   /* default to space */
     return font_table[idx - 32];
