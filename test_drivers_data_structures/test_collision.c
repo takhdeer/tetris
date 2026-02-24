@@ -3,9 +3,9 @@
 // Author: Aaron
 
 #include <stdio.h>
-#include "data_structures/matrix.h"
-#include "data_structures/tetromino.h"
-#include "data_structures/synch.h"
+#include "../data_structures/matrix.h"
+#include "../data_structures/tetromino.h"
+#include "../data_structures/synch.h"
 
 int main() {
     Matrix board;

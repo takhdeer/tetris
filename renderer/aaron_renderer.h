@@ -4,9 +4,9 @@
 #ifndef AARON_RENDERER_H // change to RENDERER_H after
 #define AARON_RENDERER_H // change to RENDERER_H after
 
-#include "data_structures/tetromino.h"
-#include "data_structures/next_box.h"
-#include "types.h"
+#include "../data_structures/tetromino.h"
+#include "../data_structures/next_box.h"
+#include "../types.h"
 
 // Functions
 

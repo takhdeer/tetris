@@ -1,10 +1,10 @@
 // File: test_next_box_renderer.c
 // Author: Aaron
 
-#include "aaron_renderer.h"
-#include "data_structures/next_box.h"
-#include "data_structures/tetromino.h"
-#include "raster.h"
+#include "aaron_renderer.h" // change to renderer.h
+#include "../data_structures/next_box.h"
+#include "../data_structures/tetromino.h"
+#include "../raster_graphics_library/raster.h"
 #include <osbind.h>
 
 int main() {

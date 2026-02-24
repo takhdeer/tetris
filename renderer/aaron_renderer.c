@@ -4,7 +4,7 @@
 // Author: Aaron
 
 #include "aaron_renderer.h" // change to renderer.c after
-#include "raster.h"
+#include "../raster_graphics_library/raster.h"
 
 #define CELL_SIZE 16
 #define NEXT_BOX_ROW 50
