@@ -159,6 +159,21 @@ void render_lines(const GameState *game, UINT8 *base) {
     plot_string(base, LINES_Y, LINES_X, lines_text);
 }
 
+void render_level(const GameState *game, UINT8 *base) {
+    char level_text[20];
+
+    level_text[0] = 'L';
+    level_text[1] = 'E';
+    level_text[2] = 'V';
+    level_text[3] = 'E';
+    level_text[4] = 'L';
+    level_text[5] = ':';
+    level_text[6] = ' ';
+
+    uint_to_str(game->level,level_text,7);
+
+    plot_string(base, LINES_Y, LINES_X, level_text);
+}
 
 void render_game_over(UINT8 *base, int score) {
     char score_str[16];
