@@ -12,10 +12,11 @@
  * Author: Henry
  */
 
-#include "henry_renderer.h"
+#include "../renderer/renderer.h"
 #include "../data_structures/matrix.h"
 #include "../data_structures/hold_box.h"
 #include "../data_structures/tetromino.h"
+#include <osbind.h>
 
 int main()
 {
