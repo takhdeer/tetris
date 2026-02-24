@@ -1,15 +1,4 @@
-// Author: Aaron
-
-#include "renderer.h"
-#include "../raster_graphics_library/raster.h"
-
-#define CELL_SIZE 16
-#define NEXT_BOX_ROW 50
-#define NEXT_BOX_COL 500
-
-#define HOLD_BOX_ROW 320
-#define HOLD_BOX_COL 500
-#define HOLD_BOX_SIZE (4 * CELL_SIZE)
+#include "takh_renderer.h"
 
 #define SCORE_X 200   // score x poisition
 #define SCORE_Y 10    // score y position
@@ -17,68 +6,6 @@
 #define LEVEL_Y 30    
 #define LINES_X 200  
 #define LINES_Y 50    
-
-void render_next_box(UINT8 *base, const NextBox *box) {
-    Tetromino preview_piece;
-    int next_type;
-
-    // Get the next piece type
-    next_type = get_next_type(box);
-
-    init_tetromino(&preview_piece, next_type, NEXT_BOX_COL / CELL_SIZE);
-    preview_piece.row = NEXT_BOX_ROW / CELL_SIZE;
-
-    render_piece(&preview_piece, (UINT32*)base); // HM changed order of parameters since we changed to render_piece
-}
-
-// ===========================================
-
-void render_matrix(UINT32 *base, const Matrix *gameGrid) {  
-    UINT16 pixel_row, pixel_col;
-    
-    for (int r = 0; r < MATRIX_ROWS; r++) {
-        for (int c = 0; c < MATRIX_COLS; c++) {
-            pixel_row = r * CELL_SIZE;
-            pixel_col = c * CELL_SIZE;
-            // Case 1: cell in Matrix holds a 1 = filled cell
-            if (gameGrid->cell[r][c] == 1) {
-                // plot SOLID filled block to FrameBuffer
-                for (int i = 0; i < CELL_SIZE; i++) {
-                    plot_horizontal_line(base, pixel_row + i, pixel_col, CELL_SIZE);
-                }
-            }
-            // Case 2: cell in Matrix holds a 0 = empty cell
-            else {
-                // plot OUTLINE block only to FrameBuffer
-                plot_square(base, pixel_row, pixel_col, CELL_SIZE); 
-            }
-        }
-    }
-}
-
-void render_hold_box(UINT32 *base, const HoldBox *heldbox) {
-    Tetromino temp_piece;
-    
-    // Case 1: render an occupied HoldBox with its current Tetromino
-    if (heldbox->contains == 1) {
-        // extract held piece and its coordinates
-        temp_piece = heldbox->piece_held;
-        temp_piece.row = HOLD_BOX_ROW / CELL_SIZE;
-        temp_piece.col = HOLD_BOX_COL / CELL_SIZE;
-
-        // plot to FrameBuffer
-        plot_rectangle(base, HOLD_BOX_ROW, HOLD_BOX_COL, HOLD_BOX_SIZE, HOLD_BOX_SIZE);
-        render_piece(&temp_piece,(UINT32*)base); // HM changed order of parameters since we changed to render_piece
-    }
-
-    // Case 2: render an empty HoldBox
-    else {
-        // plot to FrameBuffer
-        plot_rectangle(base, HOLD_BOX_ROW, HOLD_BOX_COL, HOLD_BOX_SIZE, HOLD_BOX_SIZE);
-    }
-}
-
-// ===========================================
 
 void render_piece(const Tetromino *piece, UINT32 *base) {
     int piece_row;
@@ -88,7 +15,7 @@ void render_piece(const Tetromino *piece, UINT32 *base) {
     int line; 
 
     for (piece_row = 0; piece_row < 4; piece_row++) {
-        for (piece_col = 0; piece_col < 4; piece_col++) { // HM added piece_col++ increment to fix infinite loop bug
+        for (piece_col = 0; piece_col < 4; piece_col) {
 
             //If cell is part of the piece 
             if(get_cell(piece,piece_row,piece_col) != 0) {

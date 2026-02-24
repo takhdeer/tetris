@@ -1,9 +1,8 @@
-#include "../renderer/takh_renderer.h"
+#include "../renderer/renderer.h"
 #include "../model.h"
 #include "../game_state.h"
 #include "../data_structures/tetromino.h"
 #include "raster.h"
-
 #include <osbind.h>
 
 int main() {

@@ -1,7 +1,7 @@
 // File: test_next_box_renderer.c
 // Author: Aaron
 
-#include "../renderer/aaron_renderer.h" // change to renderer.h
+#include "../renderer/renderer.h" // change to renderer.h
 #include "../data_structures/next_box.h"
 #include "../data_structures/tetromino.h"
 #include "../raster_graphics_library/raster.h"
