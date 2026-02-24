@@ -4,6 +4,10 @@
 #include "hold_box.h"
 #include "tetromino.h"
 
+void init_hold_box(HoldBox *heldbox) {
+    heldbox->contains = 0; // logically is empty @ start of game
+}
+
 unsigned int hold_box_contains(HoldBox *heldbox) {
     return heldbox->contains; // this gets automatically handled in the other 2 hold_box functions, can just return it
 }
