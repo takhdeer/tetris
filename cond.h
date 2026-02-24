@@ -3,8 +3,6 @@
 #include "data_structures/synch.h"
 
 
-#include <stdio.h>
-
 /*
     Spawns a new peice at the top
     By calling init_tetrimino()
