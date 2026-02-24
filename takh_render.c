@@ -7,7 +7,7 @@
 #define LINES_X 200  
 #define LINES_Y 50    
 
-void render_peice(const Tetromino *piece, UINT32 *base) {
+void render_piece(const Tetromino *piece, UINT32 *base) {
     int piece_row;
     int piece_col; 
     int screen_x;
