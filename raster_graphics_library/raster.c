@@ -147,29 +147,29 @@ void clear_region(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 wi
     }
 }
 
-void plot_pixel(UINT8 *base, UINT16 row, UINT16 col) {
-    UINT8 *byte_address;
-    UINT8 bit_offset;
+// void plot_pixel(UINT8 *base, UINT16 row, UINT16 col) {
+//     UINT8 *byte_address;
+//     UINT8 bit_offset;
 
-    // Byte address calculation
-    byte_address = base + (UINT32)row * BYTES_PER_ROW + (col >> 3);
+//     // Byte address calculation
+//     byte_address = base + (UINT32)row * BYTES_PER_ROW + (col >> 3);
 
-    // Bit offset calculation
-    bit_offset = col % 8;
+//     // Bit offset calculation
+//     bit_offset = col % 8;
 
-    //Setting pixel
-    *byte_address |= (0x80 >> bit_offset);
-}
+//     //Setting pixel
+//     *byte_address |= (0x80 >> bit_offset);
+// }
 
-void plot_horizontal_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length) {
-    // using plot_pixel to create a horizontal line
-    UINT16 i;
-    for (i = 0; i < length; i++) {
-        if (row < SCREEN_HEIGHT && (col + i) < SCREEN_WIDTH) {
-            plot_pixel((UINT8 *)base, row, col + i);
-        }
-    }
-}
+// void plot_horizontal_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length) {
+//     // using plot_pixel to create a horizontal line
+//     UINT16 i;
+//     for (i = 0; i < length; i++) {
+//         if (row < SCREEN_HEIGHT && (col + i) < SCREEN_WIDTH) {
+//             plot_pixel((UINT8 *)base, row, col + i);
+//         }
+//     }
+// }
 
 void plot_vertical_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length) {
     // Using plot_pixel to create vertical line
@@ -332,26 +332,26 @@ void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height, UINT16 
     }
 }
 
-void plot_bitmap_32(UINT32 *base, UINT16 row, UINT16 col, UINT16 height, const UINT32 *bitmap){
+// void plot_bitmap_32(UINT32 *base, UINT16 row, UINT16 col, UINT16 height, const UINT32 *bitmap){
     
-    UINT8  *byte_base = (UINT8) *base;
-    UINT16  r, b;
-    UINT32  word;
-    UINT32  mask;
+//     UINT8  *byte_base = (UINT8) *base;
+//     UINT16  r, b;
+//     UINT32  word;
+//     UINT32  mask;
 
-    for (r = 0; r < height; r++)
-    {
-        word = bitmap[r];
-        mask = 0x80000000UL;
+//     for (r = 0; r < height; r++)
+//     {
+//         word = bitmap[r];
+//         mask = 0x80000000UL;
 
-        for (b = 0; b < 32; b++)
-        {
-            if (word & mask)
-                plot_pixel(byte_base, row + r, col + b);
-            mask >>= 1;
-        }
-    }
-}
+//         for (b = 0; b < 32; b++)
+//         {
+//             if (word & mask)
+//                 plot_pixel(byte_base, row + r, col + b);
+//             mask >>= 1;
+//         }
+//     }
+// }
 
 void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch) {
     
