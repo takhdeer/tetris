@@ -135,22 +135,22 @@ static const UINT8 *get_glyph(char ch) {
 //     clear_region(base, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH);
 // }
 
-void clear_region(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width) {
+// void clear_region(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width) {
     
-    UINT8  *byte_base = (UINT8 *)base;
-    UINT16  r, c;
-    UINT8  *row_ptr;
+//     UINT8  *byte_base = (UINT8 *)base;
+//     UINT16  r, c;
+//     UINT8  *row_ptr;
 
-    for (r = row; r < row + length && r < SCREEN_HEIGHT; r++)
-    {
-        row_ptr = byte_base + (UINT32)r * BYTES_PER_ROW;
-        for (c = col; c < col + width && c < SCREEN_WIDTH; c++)
-        {
-            UINT8 *byte_addr = row_ptr + (c >> 3);
-            *byte_addr &= ~(0x80 >> (c & 7));
-        }
-    }
-}
+//     for (r = row; r < row + length && r < SCREEN_HEIGHT; r++)
+//     {
+//         row_ptr = byte_base + (UINT32)r * BYTES_PER_ROW;
+//         for (c = col; c < col + width && c < SCREEN_WIDTH; c++)
+//         {
+//             UINT8 *byte_addr = row_ptr + (c >> 3);
+//             *byte_addr &= ~(0x80 >> (c & 7));
+//         }
+//     }
+// }
 
 // void plot_pixel(UINT8 *base, UINT16 row, UINT16 col) {
 //     UINT8 *byte_address;
@@ -240,25 +240,25 @@ void clear_region(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 wi
 //     }
 // }
 
-void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width) {
+// void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width) {
 
-    UINT8  *byte_base = (UINT8 *)base;
-    UINT16  c, r;
+//     UINT8  *byte_base = (UINT8 *)base;
+//     UINT16  c, r;
 
-    /* Top and bottom edges */
-    for (c = col; c < col + width; c++)
-    {
-        plot_pixel(byte_base, row,              c);
-        plot_pixel(byte_base, row + length - 1, c);
-    }
+//     /* Top and bottom edges */
+//     for (c = col; c < col + width; c++)
+//     {
+//         plot_pixel(byte_base, row,              c);
+//         plot_pixel(byte_base, row + length - 1, c);
+//     }
 
-    /* Left and right edges */
-    for (r = row; r < row + length; r++)
-    {
-        plot_pixel(byte_base, r, col);
-        plot_pixel(byte_base, r, col + width - 1);
-    }
-}
+//     /* Left and right edges */
+//     for (r = row; r < row + length; r++)
+//     {
+//         plot_pixel(byte_base, r, col);
+//         plot_pixel(byte_base, r, col + width - 1);
+//     }
+// }
 
 // void plot_square(UINT32 *base, UINT16 row, UINT16 col, UINT16 side) {
 //     // Using plot_rectangle to create square
@@ -379,12 +379,12 @@ void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 
 
 // }
 
-void plot_string(UINT8 *base, UINT16 row, UINT16 col, char *ch){
+// void plot_string(UINT8 *base, UINT16 row, UINT16 col, char *ch){
 
-    while (*ch != '\0')
-    {
-        plot_character(base, row, col, *ch);
-        col += 8;   /* advance one character width */
-        ch++;
-    }
-}
+//     while (*ch != '\0')
+//     {
+//         plot_character(base, row, col, *ch);
+//         col += 8;   /* advance one character width */
+//         ch++;
+//     }
+// }
