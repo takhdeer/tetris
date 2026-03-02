@@ -16,7 +16,7 @@
  * -> But Non used values are Zeroed-out since we have no use for them!
  * -> Essentially an "Optimized" Font Table for our Tetris game.
  */
-static const UINT8 font_table[96][FONT_ROWS] = {
+const UINT8 font_table[96][FONT_ROWS] = {
     /* 32 space  */ {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     /* 33 !      */ {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},  /* unused */
     /* 34 "      */ {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},  /* unused */
@@ -83,7 +83,7 @@ static const UINT8 font_table[96][FONT_ROWS] = {
     {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},  /* unused */
     {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},  /* unused */
     {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},  /* unused */
-    
+
     /* 97 - 127: all lowercase and remaining symbols unused */
     {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
@@ -130,10 +130,10 @@ static const UINT8 *get_glyph(char ch) {
     return font_table[idx - 32];
 }
 
-void clear_screen(UINT32 *base) {
-    // using clear_region "on the defined whole screen dimensions"
-    clear_region(base, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH);
-}
+// void clear_screen(UINT32 *base) {
+//     // using clear_region "on the defined whole screen dimensions"
+//     clear_region(base, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH);
+// }
 
 void clear_region(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width) {
     
@@ -185,60 +185,60 @@ void clear_region(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 wi
 //     }
 // }
 
-void plot_line(UINT32 *base, UINT16 start_row, UINT16 start_col, UINT16 end_row, UINT16 end_col) {
-    // below are int types due to these values potentially holding negative value
-    int dx = end_col - start_col;
-    int dy = end_row - start_row;
-    int sx, sy; // step direction
-    int err, e2;
+// void plot_line(UINT32 *base, UINT16 start_row, UINT16 start_col, UINT16 end_row, UINT16 end_col) {
+//     // below are int types due to these values potentially holding negative value
+//     int dx = end_col - start_col;
+//     int dy = end_row - start_row;
+//     int sx, sy; // step direction
+//     int err, e2;
 
-    UINT8 *byte_base = (UINT8 *)base;
-    if (dx > 0) {
-        sx = 1;
-    }
-    else {
-        sx = -1;
-    }
+//     UINT8 *byte_base = (UINT8 *)base;
+//     if (dx > 0) {
+//         sx = 1;
+//     }
+//     else {
+//         sx = -1;
+//     }
 
-    if (dy > 0) {
-        sy = 1;
-    }
-    else {
-        sy = -1;
-    }
+//     if (dy > 0) {
+//         sy = 1;
+//     }
+//     else {
+//         sy = -1;
+//     }
 
-    // ensure negative coordinates are negative numerically
-    if (dx < 0) {
-        dx = -dx;
-    }
-    if (dy < 0) {
-        dy = -dy;
-    }
+//     // ensure negative coordinates are negative numerically
+//     if (dx < 0) {
+//         dx = -dx;
+//     }
+//     if (dy < 0) {
+//         dy = -dy;
+//     }
 
-    err = dx - dy; // initial error
+//     err = dx - dy; // initial error
 
-    while (1) {
-        // clipping/boundary checking:
-        if (start_col < SCREEN_WIDTH && start_row < SCREEN_HEIGHT) {
-            plot_pixel(byte_base, start_row, start_col);
-        }
+//     while (1) {
+//         // clipping/boundary checking:
+//         if (start_col < SCREEN_WIDTH && start_row < SCREEN_HEIGHT) {
+//             plot_pixel(byte_base, start_row, start_col);
+//         }
 
-        // @ here, reached end point
-        if (start_col == end_col && start_row == end_row) {
-            break;
-        }
+//         // @ here, reached end point
+//         if (start_col == end_col && start_row == end_row) {
+//             break;
+//         }
 
-        e2 = 2 * err;
-        if (e2 > -dy) {
-            err -= dy;
-            start_col += sx;
-        }
-        if (e2 < dx) {
-            err += dx;
-            start_row += sy;
-        }
-    }
-}
+//         e2 = 2 * err;
+//         if (e2 > -dy) {
+//             err -= dy;
+//             start_col += sx;
+//         }
+//         if (e2 < dx) {
+//             err += dx;
+//             start_row += sy;
+//         }
+//     }
+// }
 
 void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width) {
 
@@ -265,58 +265,58 @@ void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 
 //     plot_rectangle(base, row, col, side, side); // length == width
 // }
 
-void plot_triangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 base, UINT16 height, UINT8 direction) {
-    // using plot_horizontal_line to create triangle
-    UINT16 i;
+// void plot_triangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 base, UINT16 height, UINT8 direction) {
+//     // using plot_horizontal_line to create triangle
+//     UINT16 i;
 
-    // '0' = plot horizontal line start from top left
-    if (direction == 0) {
-        for (i = 0; i < height; i++) {
-            plot_horizontal_line(base, row + i, col, i + 1);
-        }
-    }
-    // '1' = plot horizontal line start from top right
-    else if (direction == 1) {
-        for (i = 0; i < height; i++) {
-            plot_horizontal_line(base, row + i, col - i, i + 1);
-        }
-    }
-    // '2' = plot horizontal line start from bottom left
-    else if (direction == 2) {
-        for (i = 0; i < height; i++) {
-            plot_horizontal_line(base, row + i, col, height - i);
-        }
-    }
-    // '3' = plot horizontal line from bottom right
-    else if (direction == 3) {
-        for (i = 0; i < height; i++) {
-            plot_horizontal_line(base, row + i, col + i, height - i);
-        }
-    }
-}
+//     // '0' = plot horizontal line start from top left
+//     if (direction == 0) {
+//         for (i = 0; i < height; i++) {
+//             plot_horizontal_line(base, row + i, col, i + 1);
+//         }
+//     }
+//     // '1' = plot horizontal line start from top right
+//     else if (direction == 1) {
+//         for (i = 0; i < height; i++) {
+//             plot_horizontal_line(base, row + i, col - i, i + 1);
+//         }
+//     }
+//     // '2' = plot horizontal line start from bottom left
+//     else if (direction == 2) {
+//         for (i = 0; i < height; i++) {
+//             plot_horizontal_line(base, row + i, col, height - i);
+//         }
+//     }
+//     // '3' = plot horizontal line from bottom right
+//     else if (direction == 3) {
+//         for (i = 0; i < height; i++) {
+//             plot_horizontal_line(base, row + i, col + i, height - i);
+//         }
+//     }
+// }
 
-void plot_bitmap_8(UINT8 *base, UINT16 row, UINT16 col, UINT16 height) {
-    UINT8 *byte_base = base;
-    UINT16 r, b;
-    UINT8 byte;
-    UINT8 mask;
+// void plot_bitmap_8(UINT8 *base, UINT16 row, UINT16 col, UINT16 height) {
+//     UINT8 *byte_base = base;
+//     UINT16 r, b;
+//     UINT8 byte;
+//     UINT8 mask;
 
-    // no bitmap parameter in function, must hardcode a bitmap array:
-    const UINT8 bitmap[] = {0xFF, 0x81, 0x81, 0xFF};
+//     // no bitmap parameter in function, must hardcode a bitmap array:
+//     const UINT8 bitmap[] = {0xFF, 0x81, 0x81, 0xFF};
 
-    for (r = 0; r < height; r++) {
-        byte = bitmap[r];
-        mask = 0x80;
-        for (b = 0; b < 8; b++) {
-            if (byte & mask) {
-                if ( (row + r) < SCREEN_HEIGHT && (col + b) < SCREEN_WIDTH) {
-                plot_pixel(byte_base, row + r, col + b);
-                }
-            }
-            mask >>=1;
-        }
-    }
-}
+//     for (r = 0; r < height; r++) {
+//         byte = bitmap[r];
+//         mask = 0x80;
+//         for (b = 0; b < 8; b++) {
+//             if (byte & mask) {
+//                 if ( (row + r) < SCREEN_HEIGHT && (col + b) < SCREEN_WIDTH) {
+//                 plot_pixel(byte_base, row + r, col + b);
+//                 }
+//             }
+//             mask >>=1;
+//         }
+//     }
+// }
 
 // void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height, UINT16 *bitmap){
 

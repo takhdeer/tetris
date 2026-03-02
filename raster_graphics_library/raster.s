@@ -5,6 +5,8 @@ BYTES_PER_ROW   EQU 80
 SCREEN_HEIGHT   EQU 400
 SCREEN_WIDTH    EQU 640
 
+    xref font_table     ; import the font table from raster.c
+
 ;=============================================================================
 ; plot_pixel(UINT8 *base, UINT16 row, UINT16 col)
 ; stack on entry: base(4 bytes), row(2 bytes), col(2 bytes)
@@ -393,7 +395,7 @@ ps_loop:
     move.w  d0, -(sp)           ; push row
     move.l  a0, -(sp)           ; push base
     jsr     plot_character
-    addq.l  #8, sp              ; pop 4+2+2+2 = 10... use proper adjustment
+    ; addq.l  #8, sp              ; pop 4+2+2+2 = 10... use proper adjustment
     ; Note: args = 4+2+2+2 = 10 bytes, but word-aligned so addq.l is fine
     ; Actually adjust by 10:
     add.l   #10, sp
@@ -452,4 +454,454 @@ char_loop:
     
 char_done:
     movem.l (sp)+,d3-d6/a2-a3
+    rts
+
+;=============================================================================
+; clear_screen(UINT32 *base)
+;
+; Stack layout after movem.l d0/a0 -(sp)  [2 regs = 8 bytes saved]:
+;   0(sp)  = saved d0
+;   4(sp)  = saved a0
+;   8(sp)  = return address
+;  12(sp)  = base (4 bytes)
+;
+; Calls clear_region(base, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH)
+;=============================================================================
+    xdef    clear_screen
+
+clear_screen:
+    movem.l d0/a0, -(sp)        ; save registers (8 bytes)
+
+    move.l  12(sp), a0          ; a0 = base
+
+    ; push args for clear_region    (base, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH)
+    move.w  #SCREEN_WIDTH,  -(sp)   ; width  = 640
+    move.w  #SCREEN_HEIGHT, -(sp)   ; length = 400
+    move.w  #0, -(sp)               ; col    = 0
+    move.w  #0, -(sp)               ; row    = 0
+    move.l  a0, -(sp)               ; base
+
+    jsr     clear_region
+    add.l   #12, sp             ; pop args (4+2+2+2+2 = 12 bytes)
+
+    movem.l (sp)+, d0/a0        ; restore registers
+    rts
+
+;=============================================================================
+; plot_horizontal_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length)
+;
+; Stack layout after movem.l d3-d6/a2 -(sp)  [5 regs = 20 bytes saved]:
+;   0(sp)  = saved d3
+;   4(sp)  = saved d4
+;   8(sp)  = saved d5
+;  12(sp)  = saved d6
+;  16(sp)  = saved a2
+;  20(sp)  = return address
+;  24(sp)  = base   (4 bytes)
+;  28(sp)  = row    (2 bytes)
+;  30(sp)  = col    (2 bytes)
+;  32(sp)  = length (2 bytes)
+;=============================================================================
+    xdef    plot_horizontal_line
+
+plot_horizontal_line:
+    movem.l d3-d6/a2, -(sp)     ; save registers (20 bytes)
+
+    move.l  24(sp), a2          ; a2 = base
+    move.w  28(sp), d3          ; d3 = row
+    move.w  30(sp), d4          ; d4 = col
+    move.w  32(sp), d5          ; d5 = length
+
+    clr.w   d6                  ; d6: i = 0
+
+henry_hline_loop:
+    cmp.w   d5, d6              ; i < length?
+    bge     henry_hline_done
+
+    ; boundary check: row < SCREEN_HEIGHT
+    cmp.w   #SCREEN_HEIGHT, d3
+    bge     henry_hline_done
+
+    ; boundary check: (col + i) < SCREEN_WIDTH
+    move.w  d4, d0
+    add.w   d6, d0              ; d0 = col + i
+    cmp.w   #SCREEN_WIDTH, d0
+    bge     henry_hline_done
+
+    ; plot_pixel(base, row, col + i)
+    move.w  d0, -(sp)           ; push col + i
+    move.w  d3, -(sp)           ; push row
+    move.l  a2, -(sp)           ; push base
+    jsr     plot_pixel
+    add.l   #8, sp              ; pop args (4+2+2 = 8 bytes)
+
+    addq.w  #1, d6              ; i++
+    bra     henry_hline_loop
+
+henry_hline_done:
+    movem.l (sp)+, d3-d6/a2     ; restore registers
+    rts
+
+;=============================================================================
+; plot_bitmap_8(UINT8 *base, UINT16 row, UINT16 col, UINT16 height)
+;
+; Stack layout after movem.l d3-d7/a2-a3 -(sp)  [7 regs = 28 bytes saved]:
+;   0(sp)  = saved d3
+;   ...
+;  24(sp)  = saved a2
+;  28(sp)  = saved a3 (wait: 7 regs = d3,d4,d5,d6,d7,a2,a3)
+;  32(sp)  = return address
+;  36(sp)  = base   (4 bytes)
+;  40(sp)  = row    (2 bytes)
+;  42(sp)  = col    (2 bytes)
+;  44(sp)  = height (2 bytes)
+;
+; Hardcoded bitmap: {0xFF, 0x81, 0x81, 0xFF}
+;=============================================================================
+    xdef    bitm_8
+
+bitm_8:
+    movem.l d3-d7/a2-a3, -(sp)  ; save registers (28 bytes)
+
+    move.l  32(sp), a2          ; a2 = base
+    move.w  36(sp), d3          ; d3 = row
+    move.w  38(sp), d4          ; d4 = col
+    move.w  40(sp), d5          ; d5 = height
+
+    lea     henry_bm8_data, a3  ; a3 = &bitmap[0]
+
+    clr.w   d6                  ; d6: r = 0
+
+henry_bm8_row_loop:
+    cmp.w   d5, d6              ; r < height?
+    bge     henry_bm8_done
+
+    move.b  (a3, d6.w), d7      ; d7 = bitmap[r]
+    move.b  #$80, d0            ; d0: mask = 0x80
+    clr.w   d1                  ; d1: b = 0
+
+henry_bm8_bit_loop:
+    cmp.w   #8, d1              ; b < 8?
+    bge     henry_bm8_next_row
+
+    ; if (byte & mask) == 0, skip
+    move.b  d7, d2
+    and.b   d0, d2
+    beq     henry_bm8_skip
+
+    ; boundary check: (row + r) < SCREEN_HEIGHT
+    move.w  d3, d2
+    add.w   d6, d2              ; d2 = row + r
+    cmp.w   #SCREEN_HEIGHT, d2
+    bge     henry_bm8_skip
+
+    ; boundary check: (col + b) < SCREEN_WIDTH
+    move.w  d4, d2
+    add.w   d1, d2              ; d2 = col + b
+    cmp.w   #SCREEN_WIDTH, d2
+    bge     henry_bm8_skip
+
+    ; plot_pixel(base, row + r, col + b)
+    move.w  d4, d2
+    add.w   d1, d2              ; col + b
+    move.w  d2, -(sp)           ; push col + b
+    move.w  d3, d2
+    add.w   d6, d2              ; row + r
+    move.w  d2, -(sp)           ; push row + r
+    move.l  a2, -(sp)           ; push base
+    jsr     plot_pixel
+    add.l   #8, sp              ; pop args (4+2+2 = 8 bytes)
+
+henry_bm8_skip:
+    lsr.b   #1, d0              ; mask >>= 1
+    addq.w  #1, d1              ; b++
+    bra     henry_bm8_bit_loop
+
+henry_bm8_next_row:
+    addq.w  #1, d6              ; r++
+    bra     henry_bm8_row_loop
+
+henry_bm8_done:
+    movem.l (sp)+, d3-d7/a2-a3  ; restore registers
+    rts
+
+henry_bm8_data:
+    dc.b    $FF, $81, $81, $FF  ; hardcoded bitmap rows
+    ds.b    4                   ; pad to 8 bytes total
+
+;=============================================================================
+; plot_line(UINT32 *base, UINT16 start_row, UINT16 start_col,
+;           UINT16 end_row, UINT16 end_col)
+; Bresenham's line algorithm
+;
+; Register usage inside function:
+;   a2 = base
+;   d3 = start_row (updated each iteration)
+;   d4 = start_col (updated each iteration)
+;   d5 = end_row
+;   d6 = end_col
+;   d7 = err
+;   Local vars sx, sy, dx, dy pushed to stack
+;
+; Stack layout after movem.l d3-d7/a2 -(sp)  [6 regs = 24 bytes saved]:
+;  24(sp)  = return address
+;  28(sp)  = base       (4 bytes)
+;  32(sp)  = start_row  (2 bytes)
+;  34(sp)  = start_col  (2 bytes)
+;  36(sp)  = end_row    (2 bytes)
+;  38(sp)  = end_col    (2 bytes)
+;=============================================================================
+    xdef    plot_line
+
+plot_line:
+    movem.l d3-d7/a2, -(sp)     ; save registers (24 bytes)
+
+    move.l  28(sp), a2          ; a2 = base
+    move.w  32(sp), d3          ; d3 = start_row (mutable)
+    move.w  34(sp), d4          ; d4 = start_col (mutable)
+    move.w  36(sp), d5          ; d5 = end_row
+    move.w  38(sp), d6          ; d6 = end_col
+
+    ; dx = end_col - start_col
+    move.w  d6, d0
+    sub.w   d4, d0              ; d0 = dx (signed)
+
+    ; dy = end_row - start_row
+    move.w  d5, d1
+    sub.w   d3, d1              ; d1 = dy (signed)
+
+    ; sx = (dx > 0) ? 1 : -1
+    tst.w   d0
+    bgt     henry_line_sx_pos
+    move.w  #-1, d2             ; sx = -1
+    bra     henry_line_sx_done
+
+henry_line_sx_pos:
+    move.w  #1, d2              ; sx = 1
+
+henry_line_sx_done:
+
+    ; sy = (dy > 0) ? 1 : -1
+    tst.w   d1
+    bgt     henry_line_sy_pos
+    move.w  #-1, d0             ; reuse d0 temporarily for sy
+    bra     henry_line_sy_done
+
+henry_line_sy_pos:
+    move.w  #1, d0
+
+henry_line_sy_done:
+    ; push sx and sy onto stack for safe keeping
+    ; d2 = sx, d0 = sy
+    move.w  d0, -(sp)           ; push sy
+    move.w  d2, -(sp)           ; push sx
+    ; sp+0 = sx, sp+2 = sy
+
+    ; reload dx and dy, take abs
+    move.w  38(sp), d0          ; reload end_col (offset shifted +4)
+    sub.w   36(sp), d0          ; dx = end_col - start_col
+    ; wait -- offsets shifted by 4 due to sx/sy push
+    ; recalculate cleanly:
+    move.w  d6, d0              ; end_col (still in d6)
+    sub.w   d4, d0              ; dx
+    tst.w   d0
+    bge     henry_line_dx_abs
+    neg.w   d0                  ; dx = abs(dx)
+
+henry_line_dx_abs:
+
+    move.w  d5, d1              ; end_row (still in d5)
+    sub.w   d3, d1              ; dy
+    tst.w   d1
+    bge     henry_line_dy_abs
+    neg.w   d1                  ; dy = abs(dy)
+
+henry_line_dy_abs:
+
+    ; push dx and dy
+    move.w  d1, -(sp)           ; push dy
+    move.w  d0, -(sp)           ; push dx
+
+    ; stack: sp+0=dx, sp+2=dy, sp+4=sx, sp+6=sy
+
+    ; err = dx - dy
+    sub.w   d1, d0              ; d0 = dx - dy
+    move.w  d0, d7              ; d7 = err
+
+henry_line_loop:
+    ; boundary check: start_col < SCREEN_WIDTH && start_row < SCREEN_HEIGHT
+    cmp.w   #SCREEN_WIDTH, d4
+    bge     henry_line_no_plot
+    cmp.w   #SCREEN_HEIGHT, d3
+    bge     henry_line_no_plot
+
+    ; plot_pixel(base, start_row, start_col)
+    move.w  d4, -(sp)           ; push start_col
+    move.w  d3, -(sp)           ; push start_row
+    move.l  a2, -(sp)           ; push base
+    jsr     plot_pixel
+    add.l   #8, sp              ; pop args
+
+henry_line_no_plot:
+    ; if start_col == end_col && start_row == end_row: done
+    cmp.w   d6, d4
+    bne     henry_line_step
+    cmp.w   d5, d3
+    beq     henry_line_done
+
+henry_line_step:
+    ; e2 = 2 * err
+    move.w  d7, d0
+    add.w   d0, d0              ; d0 = e2 = 2 * err
+
+    ; if e2 > -dy: err -= dy; start_col += sx
+    ; sp+0=dx, sp+2=dy, sp+4=sx, sp+6=sy
+    move.w  2(sp), d1           ; d1 = dy
+    neg.w   d1                  ; d1 = -dy
+    cmp.w   d1, d0              ; e2 > -dy?
+    ble     henry_line_skip_x
+
+    move.w  2(sp), d1           ; dy
+    sub.w   d1, d7              ; err -= dy
+    move.w  4(sp), d1           ; sx
+    add.w   d1, d4              ; start_col += sx
+
+henry_line_skip_x:
+    ; if e2 < dx: err += dx; start_row += sy
+    move.w  0(sp), d1           ; dx
+    cmp.w   d1, d0              ; e2 < dx?
+    bge     henry_line_skip_y
+
+    move.w  0(sp), d1           ; dx
+    add.w   d1, d7              ; err += dx
+    move.w  6(sp), d1           ; sy
+    add.w   d1, d3              ; start_row += sy
+
+henry_line_skip_y:
+    bra     henry_line_loop
+
+henry_line_done:
+    add.l   #8, sp              ; pop dx/dy/sx/sy (4 words = 8 bytes)
+    movem.l (sp)+, d3-d7/a2     ; restore registers
+    rts
+
+;=============================================================================
+; plot_triangle(UINT32 *base, UINT16 row, UINT16 col,
+;               UINT16 tri_base, UINT16 height, UINT8 direction)
+;
+; Stack layout after movem.l d3-d7/a2 -(sp)  [6 regs = 24 bytes saved]:
+;  24(sp)  = return address
+;  28(sp)  = base      (4 bytes)
+;  32(sp)  = row       (2 bytes)
+;  34(sp)  = col       (2 bytes)
+;  36(sp)  = tri_base  (2 bytes) -- not used in loop logic
+;  38(sp)  = height    (2 bytes)
+;  40(sp)  = direction (2 bytes, UINT8 promoted)
+;=============================================================================
+    xdef    plot_triangle
+
+plot_triangle:
+    movem.l d3-d7/a2, -(sp)     ; save registers (24 bytes)
+
+    move.l  28(sp), a2          ; a2 = base
+    move.w  32(sp), d3          ; d3 = row
+    move.w  34(sp), d4          ; d4 = col
+    move.w  38(sp), d5          ; d5 = height
+    move.w  40(sp), d6          ; d6 = direction
+    and.w   #$FF, d6            ; mask to UINT8
+
+    clr.w   d7                  ; d7: i = 0
+
+    cmp.w   #0, d6
+    beq     henry_tri_dir0
+    cmp.w   #1, d6
+    beq     henry_tri_dir1
+    cmp.w   #2, d6
+    beq     henry_tri_dir2
+    cmp.w   #3, d6
+    beq     henry_tri_dir3
+    bra     henry_tri_done
+
+; --- Direction 0: top-left, length = i+1, col fixed ---
+henry_tri_dir0:
+    cmp.w   d5, d7
+    bge     henry_tri_done
+
+    move.w  d7, d0
+    addq.w  #1, d0              ; length = i + 1
+    move.w  d0, -(sp)           ; push length
+    move.w  d4, -(sp)           ; push col
+    move.w  d3, d0
+    add.w   d7, d0
+    move.w  d0, -(sp)           ; push row + i
+    move.l  a2, -(sp)           ; push base
+    jsr     plot_horizontal_line
+    add.l   #10, sp             ; pop 4+2+2+2 = 10 bytes
+
+    addq.w  #1, d7
+    bra     henry_tri_dir0
+
+; --- Direction 1: top-right, length = i+1, col = col - i ---
+henry_tri_dir1:
+    cmp.w   d5, d7
+    bge     henry_tri_done
+
+    move.w  d7, d0
+    addq.w  #1, d0              ; length = i + 1
+    move.w  d0, -(sp)           ; push length
+    move.w  d4, d0
+    sub.w   d7, d0              ; col - i
+    move.w  d0, -(sp)           ; push col - i
+    move.w  d3, d0
+    add.w   d7, d0
+    move.w  d0, -(sp)           ; push row + i
+    move.l  a2, -(sp)           ; push base
+    jsr     plot_horizontal_line
+    add.l   #10, sp
+
+    addq.w  #1, d7
+    bra     henry_tri_dir1
+
+; --- Direction 2: bottom-left, length = height-i, col fixed ---
+henry_tri_dir2:
+    cmp.w   d5, d7
+    bge     henry_tri_done
+
+    move.w  d5, d0
+    sub.w   d7, d0              ; length = height - i
+    move.w  d0, -(sp)           ; push length
+    move.w  d4, -(sp)           ; push col
+    move.w  d3, d0
+    add.w   d7, d0
+    move.w  d0, -(sp)           ; push row + i
+    move.l  a2, -(sp)           ; push base
+    jsr     plot_horizontal_line
+    add.l   #10, sp
+
+    addq.w  #1, d7
+    bra     henry_tri_dir2
+
+; --- Direction 3: bottom-right, length = height-i, col = col + i ---
+henry_tri_dir3:
+    cmp.w   d5, d7
+    bge     henry_tri_done
+
+    move.w  d5, d0
+    sub.w   d7, d0              ; length = height - i
+    move.w  d0, -(sp)           ; push length
+    move.w  d4, d0
+    add.w   d7, d0              ; col + i
+    move.w  d0, -(sp)           ; push col + i
+    move.w  d3, d0
+    add.w   d7, d0
+    move.w  d0, -(sp)           ; push row + i
+    move.l  a2, -(sp)           ; push base
+    jsr     plot_horizontal_line
+    add.l   #10, sp
+
+    addq.w  #1, d7
+    bra     henry_tri_dir3
+
+henry_tri_done:
+    movem.l (sp)+, d3-d7/a2     ; restore registers
     rts
