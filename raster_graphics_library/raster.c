@@ -171,14 +171,14 @@ void clear_region(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 wi
 //     }
 // }
 
-void plot_vertical_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length) {
-    // Using plot_pixel to create vertical line
-    UINT16 i;
-    for (i = 0 ; i < length ; i++) {
-        plot_pixel((UINT8 *)base, row + i, col);    // wraps around
+// void plot_vertical_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length) {
+//     // Using plot_pixel to create vertical line
+//     UINT16 i;
+//     for (i = 0 ; i < length ; i++) {
+//         plot_pixel((UINT8 *)base, row + i, col);    // wraps around
 
-    }
-}
+//     }
+// }
 
 void plot_line(UINT32 *base, UINT16 start_row, UINT16 start_col, UINT16 end_row, UINT16 end_col) {
     // below are int types due to these values potentially holding negative value
@@ -255,10 +255,10 @@ void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 
     }
 }
 
-void plot_square(UINT32 *base, UINT16 row, UINT16 col, UINT16 side) {
-    // Using plot_rectangle to create square
-    plot_rectangle(base, row, col, side, side); // length == width
-}
+// void plot_square(UINT32 *base, UINT16 row, UINT16 col, UINT16 side) {
+//     // Using plot_rectangle to create square
+//     plot_rectangle(base, row, col, side, side); // length == width
+// }
 
 void plot_triangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 base, UINT16 height, UINT8 direction) {
     // using plot_horizontal_line to create triangle
@@ -313,24 +313,24 @@ void plot_bitmap_8(UINT8 *base, UINT16 row, UINT16 col, UINT16 height) {
     }
 }
 
-void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height, UINT16 *bitmap){
+// void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height, UINT16 *bitmap){
 
-    UINT8 *byte_base = (UINT8 *) base;
-    UINT16  r, b;
-    UINT16  word;
-    UINT16  mask;
+//     UINT8 *byte_base = (UINT8 *) base;
+//     UINT16  r, b;
+//     UINT16  word;
+//     UINT16  mask;
 
-    for (r = 0 ; r < height ; r++) {
-        word = bitmap[r];
-        mask = 0x8000; // leftmost bit
+//     for (r = 0 ; r < height ; r++) {
+//         word = bitmap[r];
+//         mask = 0x8000; // leftmost bit
 
-        for (b = 0 ; b < 16 ; b++) {
-            if (word & mask) 
-                plot_pixel(byte_base, row + r, col + b);
-            mask >>= 1;
-        }
-    }
-}
+//         for (b = 0 ; b < 16 ; b++) {
+//             if (word & mask) 
+//                 plot_pixel(byte_base, row + r, col + b);
+//             mask >>= 1;
+//         }
+//     }
+// }
 
 // void plot_bitmap_32(UINT32 *base, UINT16 row, UINT16 col, UINT16 height, const UINT32 *bitmap){
     
@@ -353,26 +353,26 @@ void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height, UINT16 
 //     }
 // }
 
-void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch) {
+// void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch) {
     
-    const UINT8 *glyph = get_glyph(ch);
-    UINT16 r, b;
-    UINT8  row_bits;
-    UINT8  mask;
+//     const UINT8 *glyph = get_glyph(ch);
+//     UINT16 r, b;
+//     UINT8  row_bits;
+//     UINT8  mask;
 
-    for (r = 0; r < FONT_ROWS; r++)
-    {
-        row_bits = glyph[r];
-        mask     = 0x80;
-        for (b = 0; b < 8; b++)
-        {
-            if (row_bits & mask)
-                plot_pixel(base, row + r, col + b);
-            mask >>= 1;
-        }
-    }
+//     for (r = 0; r < FONT_ROWS; r++)
+//     {
+//         row_bits = glyph[r];
+//         mask     = 0x80;
+//         for (b = 0; b < 8; b++)
+//         {
+//             if (row_bits & mask)
+//                 plot_pixel(base, row + r, col + b);
+//             mask >>= 1;
+//         }
+//     }
 
-}
+// }
 
 void plot_string(UINT8 *base, UINT16 row, UINT16 col, char *ch){
 
