@@ -232,10 +232,191 @@ bitmap_done:
     rts
 
 ;=============================================================================
+; plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, 
+; UINT16 length, UINT16 width)
+; stack: base(4), row(2), col(2), length(2), width(2)
+;=============================================================================
+plot_rectangle:
+    movem.l d0-d6/a0, -(sp)    ; 8 regs = 32 bytes
+
+    ; Args at offset 32 + 4 = 36
+    move.l  36(sp), a0          ; a0 = base (byte_base)
+    move.w  40(sp), d0          ; d0 = row
+    move.w  42(sp), d1          ; d1 = col
+    move.w  44(sp), d2          ; d2 = length
+    move.w  46(sp), d3          ; d3 = width
+
+    ; top/bottom edge: for c = col; c < col + width; c++
+    move.w  d1, d4              ; c = col
+    move.w  d1, d5
+    add.w   d3, d5              ; d5 = col + width
+
+top_bot_loop:
+    cmp.w   d5, d4              ; c < col+width?
+    bge     .top_bot_done
+
+    ; plot_pixel(base, row, c)
+    move.w  d4, -(sp)
+    move.w  d0, -(sp)
+    move.l  a0, -(sp)
+    jsr     plot_pixel
+    addq.l  #8, sp
+
+    ; plot_pixel(base, row+length-1, c)
+    move.w  d4, -(sp)
+    move.w  d0, d6
+    add.w   d2, d6
+    subq.w  #1, d6              ; row + length - 1
+    move.w  d6, -(sp)
+    move.l  a0, -(sp)
+    jsr     plot_pixel
+    addq.l  #8, sp
+
+    addq.w  #1, d4              ; c++
+    bra     .top_bot_loop
+
+top_bot_done:
+    ; left/right edge: for r = row; r < row + length; r++
+    move.w  d0, d4              ; r = row
+    move.w  d0, d5
+    add.w   d2, d5              ; d5 = row + length
+
+left_right_loop:
+    cmp.w   d5, d4              ; r < row+length?
+    bge     .rect_done
+
+    ; plot_pixel(base, r, col)
+    move.w  d1, -(sp)
+    move.w  d4, -(sp)
+    move.l  a0, -(sp)
+    jsr     plot_pixel
+    addq.l  #8, sp
+
+    ; plot_pixel(base, r, col+width-1)
+    move.w  d1, d6
+    add.w   d3, d6
+    subq.w  #1, d6              ; col + width - 1
+    move.w  d6, -(sp)
+    move.w  d4, -(sp)
+    move.l  a0, -(sp)
+    jsr     plot_pixel
+    addq.l  #8, sp
+
+    addq.w  #1, d4              ; r++
+    bra     .left_right_loop
+
+rect_done:
+    movem.l (sp)+, d0-d6/a0
+    
+    rts
+
+;=============================================================================
+; clear_region(UINT32 *base, UINT16 row, UINT16 col
+; ,UINT16 length, UINT16 width)
+; stack: base(4), row(2), col(2), length(2), width(2)
+;=============================================================================
+clear_region:
+    movem.l d0-d7/a0-a1, -(sp) ; 10 regs = 40 bytes
+
+    ; Args at offset 40 + 4 = 44
+    move.l  44(sp), a0          ; a0 = byte_base
+    move.w  48(sp), d0          ; d0 = row
+    move.w  50(sp), d1          ; d1 = col
+    move.w  52(sp), d2          ; d2 = length
+    move.w  54(sp), d3          ; d3 = width
+
+    ; r loop: r = row; r < row+length && r < SCREEN_HEIGHT
+    move.w  d0, d4              ; r = row
+    move.w  d0, d5
+    add.w   d2, d5              ; d5 = row + length
+
+cr_row_loop:
+    cmp.w   d5, d4              ; r < row+length?
+    bge     .cr_done
+    cmp.w   #SCREEN_HEIGHT, d4 ; r < SCREEN_HEIGHT?
+    bge     .cr_done
+
+    ; row_ptr = byte_base + r * BYTES_PER_ROW
+    move.w  d4, d6
+    mulu    #BYTES_PER_ROW, d6  ; d6 = r * 80
+    lea     (a0, d6.l), a1      ; a1 = row_ptr
+
+    ; c loop: c = col; c < col+width && c < SCREEN_WIDTH
+    move.w  d1, d6              ; c = col
+    move.w  d1, d7
+    add.w   d3, d7              ; d7 = col + width
+
+cr_col_loop:
+    cmp.w   d7, d6              ; c < col+width?
+    bge     .cr_next_row
+    cmp.w   #SCREEN_WIDTH, d6  ; c < SCREEN_WIDTH?
+    bge     .cr_next_row
+
+    ; byte_addr = row_ptr + (c >> 3)
+    move.w  d6, d5
+    lsr.w   #3, d5              ; d5 = c >> 3
+    ext.l   d5
+    ; *byte_addr &= ~(0x80 >> (c & 7))
+    move.w  d6, d0
+    and.w   #7, d0              ; d0 = c & 7
+    move.b  #$80, d1
+    lsr.b   d0, d1              ; d1 = 0x80 >> (c&7)
+    not.b   d1                  ; d1 = ~(0x80 >> (c&7))
+    and.b   d1, (a1, d5.l)     ; clear the bit
+
+    addq.w  #1, d6              ; c++
+    bra     .cr_col_loop
+
+cr_next_row:
+    addq.w  #1, d4              ; r++
+    bra     .cr_row_loop
+
+cr_done:
+    movem.l (sp)+, d0-d7/a0-a1
+
+    rts
+
+;=============================================================================
+; plot_string(UINT8 *base, UINT16 row, UINT16 col, char *ch)
+; stack: base(4), row(2), col(2), ch(4)
+;=============================================================================
+plot_string:
+    movem.l d0-d2/a0-a1, -(sp) ; 5 regs = 20 bytes
+
+    ; Args at offset 20 + 4 = 24
+    move.l  24(sp), a0          ; a0 = base
+    move.w  28(sp), d0          ; d0 = row
+    move.w  30(sp), d1          ; d1 = col
+    move.l  32(sp), a1          ; a1 = ch (char pointer)
+
+ps_loop:
+    move.b  (a1), d2            ; d2 = *ch
+    beq     .ps_done            ; if '\0', stop
+
+    ; plot_character(base, row, col, *ch)
+    clr.l   d2
+    move.b  (a1), d2
+    move.w  d2, -(sp)           ; push char
+    move.w  d1, -(sp)           ; push col
+    move.w  d0, -(sp)           ; push row
+    move.l  a0, -(sp)           ; push base
+    jsr     plot_character
+    addq.l  #8, sp              ; pop 4+2+2+2 = 10... use proper adjustment
+    ; Note: args = 4+2+2+2 = 10 bytes, but word-aligned so addq.l is fine
+    ; Actually adjust by 10:
+    add.l   #10, sp
+
+    addq.w  #8, d1              ; col += 8
+    addq.l  #1, a1              ; ch++
+    bra     .ps_loop
+
+ps_done:
+    movem.l (sp)+, d0-d2/a0-a1
+
+    rts
 ;=============================================================================
 ; plot_character - draws an 8x16 character from font table
 ; C : void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch)
-;=============================================================================
 ;=============================================================================
 	xdef	plot_character
 	
