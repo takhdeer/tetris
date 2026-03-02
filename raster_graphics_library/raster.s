@@ -414,22 +414,39 @@ ps_done:
 ; C : void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch)
 ;=============================================================================
 	xdef	plot_char
+    xdef    font_table          ; imported from raster.c
 	
 plot_char:
     movem.l D3-D6/A2-A3,-(SP)   ; save registers
     
-    move.l  44(sp),a2           ; a2 = base
-    move.w  48(sp),d3           ; d3 = row
-    move.w  52(sp),d4           ; d4 = col
-    move.w  54(sp),d5           ; d5 = ch (character)
+    move.l  28(sp),a2           ; a2 = base
+    move.w  32(sp),d3           ; d3 = row
+    move.w  34(sp),d4           ; d4 = col
+    move.w  36(sp),d5           ; d5 = ch (character)
     
-    ; Calculating font address: font + ch * 16
-    lea     font,a3          	; a3 = font base address (RELOOK AFTER HENRY IMPLEMENTS FONT)
-    and.l   #0xFF,d5            ; ensure ch is unsigned (0-255)
-    lsl.w   #4,d5               ; d5 = ch * 16
-    add.w   d5,a3               ; a3 = &font[ch][0]
-    
+    ;condition check 
+    cmp.w   #32, d5
+    blt     pc_use_space
+    cmp.w   #127, d5
+    bgt     pc_use_space
+    bra     pc_calc_glyph
+
+pc_use_space:
+    move.w  #32,d5
+
+pc_calc_glyph:
+    ; index = ch - 32
+    ; offset into font_table = index * 8  (8 bytes per glyph)
+
+    sub.w   #32, d5             ; d5 = ch - 32
+    lsl.w   #3, d5              ; d5 = index * 8 (shift left 3 = multiply by 8)
+    ext.l   d5
+
+    lea     font_table, a3      ; a3 = base of font_table
+    add.l   d5, a3              ; a3 = &font_table[index][0]
+
     clr.w   d6                  ; d6 = i = 0
+
     
 char_loop:
     cmp.w   #16,d6
@@ -438,7 +455,7 @@ char_loop:
     ; Calculate screen_pos = base + (row + i) * 80 + (col >> 3)
     move.w  d3,d0               ; d0 = row
     add.w   d6,d0               ; d0 = row + i
-    mulu    #80,d0              ; d0 = (row + i) * 80
+    mulu    #BYTES_PER_ROW,d0              ; d0 = (row + i) * 80
     move.w  d4,d1               ; d1 = col
     lsr.w   #3,d1               ; d1 = col >> 3
     add.w   d1,d0               ; d0 = offset
@@ -454,6 +471,7 @@ char_loop:
     
 char_done:
     movem.l (sp)+,d3-d6/a2-a3
+    
     rts
 
 ;=============================================================================
