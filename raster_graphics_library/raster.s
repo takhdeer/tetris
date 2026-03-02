@@ -46,9 +46,9 @@ plot_pixel:
 ; C: void plot_square(UINT32 *base, UINT16 row, UINT16 col, UINT16 side)
 ;=============================================================================
 ;=============================================================================
-	xdef plot_square
+	xdef plot_sqr
 
-plot_square:
+plot_sqr:
 	move.w	16(sp),-(sp)		;push width (side)
 	move.w	18(sp),-(sp)			;push length (side)
 	move.w	16(sp),-(sp)		;push col 
@@ -60,25 +60,17 @@ plot_square:
 	lea		24(sp),sp			;clean up stack
 	rts
 
-;=============================================================================
-;=============================================================================
-; plot_vertical_line - draws a vertical line
-; C: plot_vertical_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length)
-;=============================================================================
-;=============================================================================
-	xdef	plot_vertical_line
-
-plot_vertical_line:
+plot_vert_l:
 	movem.l d3-d4,-(sp)
 	
 	move.w	20(sp),d3	; d3 = length
-	beq		done		; if length == 0, exit
+	beq		vert_done		; if length == 0, exit
 	
 	clr.w	d4			; d4: i = 0
 
-loop:
+vert_loop:
 	cmp.w	d3,d4		; compare i with length
-	bge		done		; if i >= length, exit
+	bge		vert_done		; if i >= length, exit
 	
 	; calling plot_pixel(base, row + i, col)
 	move.w	18(sp),-(sp)	;push col
@@ -87,14 +79,14 @@ loop:
 	move.w 	d0,-(sp)		;push row + i
 	move.l 	16(sp),-(sp)	;push base
 	
-	jsr		_plot_pixel
+	jsr		plot_pixel
 	
 	lea		8(sp),sp		
 	
 	addq.w 	#1,d4			;i++
-	bra		loop
+	bra		vert_loop
 	
-done:
+vert_done:
 	movem.l (sp)+,d3-d4		;restoring registers
 	rts
 	
@@ -105,9 +97,9 @@ done:
 ;=============================================================================
 ;=============================================================================
 
-	xdef plot_bitmap_16
+	xdef bitm_16
 
-plot_bitmap_16:
+bitm_16:
 	movem.l d3-d7/a2-a3,-(sp)	;save registers (32 bytes)
 	
 	move.l 	68(sp),a3			;a3 = bitmap pointer
@@ -120,7 +112,7 @@ plot_bitmap_16:
 
 height_loop:
 	cmp.w	d5,d6				
-	bge		done
+	bge		b16_done
 	
 	move.w	(a3)+,d7			;d7 = bitmap[r]
 	move.w 	#$8000,d0			;mask
@@ -128,10 +120,10 @@ height_loop:
 	
 width_loop:
 	cmp.w	#16,d1
-	bge		next_row
+	bge		b16_next_row
 	
 	btst	d1,d7				;test bit
-	beq		skip
+	beq		b16_skip
 	
 	move.w	d4,-(sp)			;push col + bx
 	move.w 	d1,(sp)				
@@ -142,15 +134,15 @@ width_loop:
 	jsr		plot_pixel
 	lea		8(sp),sp
 	
-skip:
+b16_skip:
 	addq.w	#1,d1
 	bra		width_loop
 	
-next_row:
+b16_next_row:
 	addq.w	#1,d6
 	bra		height_loop
 	
-done:
+b16_done:
 	movem.l	(sp)+,d3-d7/a2-a3	;restoring registers
 	rts
 
@@ -414,13 +406,14 @@ ps_done:
     movem.l (sp)+, d0-d2/a0-a1
 
     rts
+    
 ;=============================================================================
 ; plot_character - draws an 8x16 character from font table
 ; C : void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch)
 ;=============================================================================
-	xdef	plot_character
+	xdef	plot_char
 	
-plot_character:
+plot_char:
     movem.l D3-D6/A2-A3,-(SP)   ; save registers
     
     move.l  44(sp),a2           ; a2 = base
@@ -429,16 +422,16 @@ plot_character:
     move.w  54(sp),d5           ; d5 = ch (character)
     
     ; Calculating font address: font + ch * 16
-    lea     font,a3          	; a3 = font base address (relook)
+    lea     font,a3          	; a3 = font base address (RELOOK AFTER HENRY IMPLEMENTS FONT)
     and.l   #0xFF,d5            ; ensure ch is unsigned (0-255)
     lsl.w   #4,d5               ; d5 = ch * 16
     add.w   d5,a3               ; a3 = &font[ch][0]
     
     clr.w   d6                  ; d6 = i = 0
     
-loop:
+char_loop:
     cmp.w   #16,d6
-    bge     done
+    bge     char_done
     
     ; Calculate screen_pos = base + (row + i) * 80 + (col >> 3)
     move.w  d3,d0               ; d0 = row
@@ -455,8 +448,8 @@ loop:
     or.b    d1,(a0)             ; OR into screen memory
     
     addq.w  #1,d6               ; i++
-    bra     loop
+    bra     char_loop
     
-done:
+char_done:
     movem.l (sp)+,d3-d6/a2-a3
     rts
