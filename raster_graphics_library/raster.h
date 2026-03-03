@@ -1,6 +1,8 @@
 #ifndef RASTER_H
 #define RASTER_H
 
+#include "../types.h"
+
 /*----- Function: clear_screen -----
 v
  PURPOSE: Clears the entire screen.
@@ -10,7 +12,7 @@ v
  OUTPUT: None
 
 */
-extern void clear_screen(UINT32 *base);
+void clear_screen(UINT32 *base);
 
 
 /*----- Function: clear_region -----
@@ -25,7 +27,7 @@ extern void clear_screen(UINT32 *base);
  OUTPUT: None
 
 */
-extern void clear_region(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width);
+void clear_region(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width);
 
 
 /*----- Function: plot_pixel -----
@@ -38,7 +40,7 @@ extern void clear_region(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UI
  OUTPUT: None
 
 */
-extern void plot_pixel(UINT8 *base, UINT16 row, UINT16 col);
+void plot_pixel(UINT8 *base, UINT16 row, UINT16 col);
 
 
 /*----- Function: plot_horizontal_line -----
@@ -51,7 +53,7 @@ extern void plot_pixel(UINT8 *base, UINT16 row, UINT16 col);
 
  OUTPUT: None
 */
-extern void plot_horizontal_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length);
+void plot_horizontal_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length);
 
 
 /*----- Function: plot_vertical_line -----
@@ -64,7 +66,7 @@ extern void plot_horizontal_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 le
 
  OUTPUT: None
 */
-extern void plot_vertical_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length);
+void plot_vertical_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length);
 
 
 /*----- Function: plot_line -----
@@ -77,7 +79,7 @@ extern void plot_vertical_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 leng
 
  OUTPUT: None
 */
-extern void plot_line(UINT32 *base, UINT16 start_row, UINT16 start_col, UINT16 end_row, UINT16 end_col);
+void plot_line(UINT32 *base, UINT16 start_row, UINT16 start_col, UINT16 end_row, UINT16 end_col);
 
 
 /*----- Function: plot_rectangle -----
@@ -91,7 +93,7 @@ extern void plot_line(UINT32 *base, UINT16 start_row, UINT16 start_col, UINT16 e
 
  OUTPUT: None
 */
-extern void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width);
+void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width);
 
 
 /*----- Function: plot_square -----
@@ -104,7 +106,7 @@ extern void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 length, 
 
  OUTPUT: None
 */
-extern void plot_square(UINT32 *base, UINT16 row, UINT16 col, UINT16 side);
+void plot_square(UINT32 *base, UINT16 row, UINT16 col, UINT16 side);
 
 
 /*----- Function: plot_triangle -----
@@ -123,7 +125,7 @@ extern void plot_square(UINT32 *base, UINT16 row, UINT16 col, UINT16 side);
 
  OUTPUT: None
 */
-extern void plot_triangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 width, UINT16 height, UINT8 direction);
+void plot_triangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 width, UINT16 height, UINT8 direction);
 
 
 /*----- Function: plot_bitmap_8 -----
@@ -136,7 +138,7 @@ extern void plot_triangle(UINT32 *base, UINT16 row, UINT16 col, UINT16 width, UI
 
  OUTPUT: None
 */
-extern void plot_bitmap_8(UINT8 *base, UINT16 row, UINT16 col, UINT16 height);
+void plot_bitmap_8(UINT8 *base, UINT16 row, UINT16 col, UINT16 height, UINT8 *bitmap);
 
 
 /*----- Function: plot_bitmap_16 -----
@@ -149,7 +151,7 @@ extern void plot_bitmap_8(UINT8 *base, UINT16 row, UINT16 col, UINT16 height);
 
  OUTPUT: None
 */
-extern void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height, UINT16 *bitmap);
+void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height, UINT16 *bitmap);
 
 
 /*----- Function: plot_bitmap_32 -----
@@ -162,7 +164,7 @@ extern void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height, 
 
  OUTPUT: None
 */
-extern void plot_bitmap_32(UINT32 *base, UINT16 row, UINT16 col, UINT16 height, const UINT32 *bitmap);
+void plot_bitmap_32(UINT32 *base, UINT16 row, UINT16 col, UINT16 height, const UINT32 *bitmap);
 
 
 /*----- Function: plot_character -----
@@ -175,7 +177,7 @@ extern void plot_bitmap_32(UINT32 *base, UINT16 row, UINT16 col, UINT16 height, 
 
  OUTPUT: None
 */
-extern void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch);
+void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch);
 
 
 /*----- Function: plot_string -----
@@ -188,6 +190,6 @@ extern void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch);
 
  OUTPUT: None
 */
-extern void plot_string(UINT8 *base, UINT16 row, UINT16 col, char *ch);
+void plot_string(UINT8 *base, UINT16 row, UINT16 col, char *ch);
 
 #endif

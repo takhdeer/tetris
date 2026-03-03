@@ -8,6 +8,7 @@
 #define MATRIX_ROWS 20
 #define MATRIX_COLS 10
 #include "tetromino.h"
+#include "../types.h"
 
 // define Matrix struct
 typedef struct {

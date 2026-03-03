@@ -13,7 +13,7 @@
 
 #define SCORE_X 200   // score x poisition
 #define SCORE_Y 10    // score y position
-#define LEVEL_X 200  
+#define LEVEL_X 200     
 #define LEVEL_Y 30    
 #define LINES_X 200  
 #define LINES_Y 50    

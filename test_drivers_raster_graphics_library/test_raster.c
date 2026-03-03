@@ -14,6 +14,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "../types.h"
+#include "../raster_graphics_library/raster.h"
 
 /* ── Atari ST screen constants (mirrors raster.c) ── */
 #define SCREEN_WIDTH   640
@@ -21,33 +23,26 @@
 #define BYTES_PER_ROW  (SCREEN_WIDTH / 8)   /* 80 bytes per row  */
 #define WORDS_PER_ROW  (SCREEN_WIDTH / 32)  /* 20 UINT32s per row */
 
-/* ── Portable type aliases (mirrors types.h) ── */
-typedef unsigned char      UINT8;
-typedef unsigned short     UINT16;
-typedef unsigned long      UINT32;
 
 /* ── Simulated framebuffer: 400 rows x 80 bytes = 32 000 bytes ── */
 static UINT8 framebuffer[SCREEN_HEIGHT * BYTES_PER_ROW];
 
-/* ════════════════════════════════════════════════════════════════
- * FORWARD DECLARATIONS  (paste-compatible with your raster.c)
- * ════════════════════════════════════════════════════════════════ */
-void plot_pixel          (UINT8  *base, UINT16 row, UINT16 col);
-void clear_screen        (UINT32 *base);
-void clear_region        (UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width);
-void plot_horizontal_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length);
-void plot_vertical_line  (UINT32 *base, UINT16 row, UINT16 col, UINT16 length);
-void plot_rectangle      (UINT32 *base, UINT16 row, UINT16 col, UINT16 length, UINT16 width);
-void plot_square         (UINT32 *base, UINT16 row, UINT16 col, UINT16 side);
-void plot_line           (UINT32 *base, UINT16 start_row, UINT16 start_col,
-                                        UINT16 end_row,   UINT16 end_col);
-void plot_triangle       (UINT32 *base, UINT16 row, UINT16 col,
-                          UINT16 tri_base, UINT16 height, UINT8 direction);
-void plot_bitmap_8       (UINT8  *base, UINT16 row, UINT16 col, UINT16 height);
+// ════════════════════════════════════════════════════════════════
+// Helper functions
+// ════════════════════════════════════════════════════════════════
+/*
+    Reset the frame buffer
+*/
+static void reset_fb() {
+    // Using memset to fill the framebuffer with 0's 
+    memset(framebuffer, 0, sizeof(framebuffer));
+}
 
-/* ════════════════════════════════════════════════════════════════
- * HELPER: read one pixel from the framebuffer (1 = set, 0 = clear)
- * ════════════════════════════════════════════════════════════════ */
+/*
+    Read one pixel from the frame buffer
+    1 == SET
+    0 == CLEAR
+*/
 static int get_pixel(UINT8 *base, UINT16 row, UINT16 col)
 {
     UINT8 *byte_addr;
@@ -60,10 +55,11 @@ static int get_pixel(UINT8 *base, UINT16 row, UINT16 col)
     return (*byte_addr >> (7 - bit_offset)) & 1;
 }
 
-/* ════════════════════════════════════════════════════════════════
- * HELPER: print a cropped region of the framebuffer to terminal
- *   '#' = pixel set   '.' = pixel clear
- * ════════════════════════════════════════════════════════════════ */
+/*
+    Print a smaller region of the frame buffer to terminal, where:
+    '#' == SET (i.e 1)
+    '.' == CLEAR (i.e 0)
+*/
 static void print_region(UINT8 *base,
                           UINT16 start_row, UINT16 start_col,
                           UINT16 rows,      UINT16 cols)
@@ -78,9 +74,9 @@ static void print_region(UINT8 *base,
     }
 }
 
-/* ════════════════════════════════════════════════════════════════
- * HELPER: check that ALL pixels in a row-range/col-range are SET
- * ════════════════════════════════════════════════════════════════ */
+/*
+    Checks if all pixels in a range of rows or cols are SET
+ */
 static int check_pixels_set(UINT8 *base,
                               UINT16 start_row, UINT16 start_col,
                               UINT16 rows,      UINT16 cols)
@@ -92,9 +88,9 @@ static int check_pixels_set(UINT8 *base,
     return 1;
 }
 
-/* ════════════════════════════════════════════════════════════════
- * HELPER: check that ALL pixels in a row-range/col-range are CLEAR
- * ════════════════════════════════════════════════════════════════ */
+/*
+    Checks if all pixels in a range of rows or cols are CLEAR
+*/
 static int check_pixels_clear(UINT8 *base,
                                 UINT16 start_row, UINT16 start_col,
                                 UINT16 rows,      UINT16 cols)
@@ -106,361 +102,6 @@ static int check_pixels_clear(UINT8 *base,
     return 1;
 }
 
-/* ════════════════════════════════════════════════════════════════
- * HELPER: reset framebuffer to all zeros between tests
- * ════════════════════════════════════════════════════════════════ */
-static void reset_fb(void)
-{
-    memset(framebuffer, 0, sizeof(framebuffer));
-}
-
-/* ════════════════════════════════════════════════════════════════
- *  RASTER FUNCTION IMPLEMENTATIONS (inline - no stdlib, no OS)
- *  Copy these into your raster.c when ready.
- * ════════════════════════════════════════════════════════════════ */
-
-void plot_pixel(UINT8 *base, UINT16 row, UINT16 col)
-{
-    UINT8 *byte_address;
-    UINT8  bit_offset;
-
-    if (row >= SCREEN_HEIGHT || col >= SCREEN_WIDTH) return;
-
-    byte_address = base + (UINT32)row * BYTES_PER_ROW + (col >> 3);
-    bit_offset   = col & 7;
-    *byte_address |= (0x80 >> bit_offset);
-}
-
-void clear_screen(UINT32 *base)
-{
-    clear_region(base, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH);
-}
-
-void clear_region(UINT32 *base, UINT16 row, UINT16 col,
-                  UINT16 length, UINT16 width)
-{
-    UINT8  *byte_base = (UINT8 *)base;
-    UINT16  r, c;
-
-    for (r = row; r < row + length && r < SCREEN_HEIGHT; r++)
-        for (c = col; c < col + width && c < SCREEN_WIDTH; c++)
-        {
-            UINT8 *addr = byte_base + (UINT32)r * BYTES_PER_ROW + (c >> 3);
-            *addr &= ~(0x80 >> (c & 7));
-        }
-}
-
-void plot_horizontal_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length)
-{
-    UINT16 i;
-    for (i = 0; i < length; i++)
-        if (row < SCREEN_HEIGHT && (col + i) < SCREEN_WIDTH)
-            plot_pixel((UINT8 *)base, row, col + i);
-}
-
-void plot_vertical_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length)
-{
-    UINT16 i;
-    for (i = 0; i < length; i++)
-        plot_pixel((UINT8 *)base, row + i, col);
-}
-
-void plot_rectangle(UINT32 *base, UINT16 row, UINT16 col,
-                    UINT16 length, UINT16 width)
-{
-    UINT8  *byte_base = (UINT8 *)base;
-    UINT16  c, r;
-
-    for (c = col; c < col + width; c++)
-    {
-        plot_pixel(byte_base, row,              c);
-        plot_pixel(byte_base, row + length - 1, c);
-    }
-    for (r = row; r < row + length; r++)
-    {
-        plot_pixel(byte_base, r, col);
-        plot_pixel(byte_base, r, col + width - 1);
-    }
-}
-
-void plot_square(UINT32 *base, UINT16 row, UINT16 col, UINT16 side)
-{
-    plot_rectangle(base, row, col, side, side);
-}
-
-void plot_line(UINT32 *base, UINT16 start_row, UINT16 start_col,
-               UINT16 end_row, UINT16 end_col)
-{
-    int dx = (int)end_col   - (int)start_col;
-    int dy = (int)end_row   - (int)start_row;
-    int sx, sy, err, e2;
-    UINT8 *byte_base = (UINT8 *)base;
-
-    if (dx > 0) sx = 1; else sx = -1;
-    if (dy > 0) sy = 1; else sy = -1;
-    if (dx < 0) dx = -dx;
-    if (dy < 0) dy = -dy;
-
-    err = dx - dy;
-
-    while (1)
-    {
-        if (start_col < SCREEN_WIDTH && start_row < SCREEN_HEIGHT)
-            plot_pixel(byte_base, start_row, start_col);
-
-        if (start_col == end_col && start_row == end_row) break;
-
-        e2 = 2 * err;
-        if (e2 > -dy) { err -= dy; start_col += sx; }
-        if (e2 <  dx) { err += dx; start_row += sy; }
-    }
-}
-
-void plot_triangle(UINT32 *base, UINT16 row, UINT16 col,
-                   UINT16 tri_base, UINT16 height, UINT8 direction)
-{
-    UINT16 i;
-
-    if (direction == 0)   /* 90 deg at top-left */
-        for (i = 0; i < height; i++)
-            plot_horizontal_line(base, row + i, col, i + 1);
-
-    else if (direction == 1)   /* 90 deg at top-right */
-        for (i = 0; i < height; i++)
-            plot_horizontal_line(base, row + i, col - i, i + 1);
-
-    else if (direction == 2)   /* 90 deg at bottom-left */
-        for (i = 0; i < height; i++)
-            plot_horizontal_line(base, row + i, col, height - i);
-
-    else if (direction == 3)   /* 90 deg at bottom-right */
-        for (i = 0; i < height; i++)
-            plot_horizontal_line(base, row + i, col + i, height - i);
-}
-
-void plot_bitmap_8(UINT8 *base, UINT16 row, UINT16 col, UINT16 height)
-{
-    /* hardcoded 8x8 bitmap: simple box with X inside */
-    const UINT8 bitmap[] = {
-        0xFF,   /* 1111 1111 */
-        0x81,   /* 1000 0001 */
-        0xC3,   /* 1100 0011 */
-        0xA5,   /* 1010 0101 */
-        0xA5,   /* 1010 0101 */
-        0xC3,   /* 1100 0011 */
-        0x81,   /* 1000 0001 */
-        0xFF    /* 1111 1111 */
-    };
-
-    UINT8  *byte_base = base;
-    UINT16  r, b;
-    UINT8   byte, mask;
-
-    for (r = 0; r < height && r < 8; r++)
-    {
-        byte = bitmap[r];
-        mask = 0x80;
-        for (b = 0; b < 8; b++)
-        {
-            if (byte & mask)
-                if ((row + r) < SCREEN_HEIGHT && (col + b) < SCREEN_WIDTH)
-                    plot_pixel(byte_base, row + r, col + b);
-            mask >>= 1;
-        }
-    }
-}
-
-/* ════════════════════════════════════════════════════════════════
- *  MISSING IMPLEMENTATIONS
- * ════════════════════════════════════════════════════════════════ */
-
-#define FONT_ROWS 8
-
-/*
- * 8x8 monochrome bitmap font covering ASCII 32 (space) through 127 (DEL).
- * Each character is 8 rows of 8 bits. MSB is the leftmost pixel.
- * No stdlib, no OS -- pure data table.
- */
-static const UINT8 font_table[96][FONT_ROWS] = {
-    /* 32 space  */ {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-    /* 33 !      */ {0x18,0x18,0x18,0x18,0x00,0x00,0x18,0x00},
-    /* 34 "      */ {0x66,0x66,0x24,0x00,0x00,0x00,0x00,0x00},
-    /* 35 #      */ {0x6C,0x6C,0xFE,0x6C,0xFE,0x6C,0x6C,0x00},
-    /* 36 $      */ {0x18,0x3E,0x60,0x3C,0x06,0x7C,0x18,0x00},
-    /* 37 %      */ {0x00,0x66,0xAC,0xD8,0x36,0x6A,0xCC,0x00},
-    /* 38 &      */ {0x38,0x6C,0x68,0x76,0xDC,0xCC,0x76,0x00},
-    /* 39 '      */ {0x18,0x18,0x30,0x00,0x00,0x00,0x00,0x00},
-    /* 40 (      */ {0x0C,0x18,0x30,0x30,0x30,0x18,0x0C,0x00},
-    /* 41 )      */ {0x30,0x18,0x0C,0x0C,0x0C,0x18,0x30,0x00},
-    /* 42 *      */ {0x00,0x66,0x3C,0xFF,0x3C,0x66,0x00,0x00},
-    /* 43 +      */ {0x00,0x18,0x18,0x7E,0x18,0x18,0x00,0x00},
-    /* 44 ,      */ {0x00,0x00,0x00,0x00,0x00,0x18,0x18,0x30},
-    /* 45 -      */ {0x00,0x00,0x00,0x7E,0x00,0x00,0x00,0x00},
-    /* 46 .      */ {0x00,0x00,0x00,0x00,0x00,0x18,0x18,0x00},
-    /* 47 /      */ {0x06,0x0C,0x18,0x30,0x60,0xC0,0x80,0x00},
-    /* 48 0      */ {0x3C,0x66,0x6E,0x7E,0x76,0x66,0x3C,0x00},
-    /* 49 1      */ {0x18,0x38,0x18,0x18,0x18,0x18,0x7E,0x00},
-    /* 50 2      */ {0x3C,0x66,0x06,0x1C,0x30,0x60,0x7E,0x00},
-    /* 51 3      */ {0x3C,0x66,0x06,0x1C,0x06,0x66,0x3C,0x00},
-    /* 52 4      */ {0x0E,0x1E,0x36,0x66,0x7F,0x06,0x06,0x00},
-    /* 53 5      */ {0x7E,0x60,0x7C,0x06,0x06,0x66,0x3C,0x00},
-    /* 54 6      */ {0x1C,0x30,0x60,0x7C,0x66,0x66,0x3C,0x00},
-    /* 55 7      */ {0x7E,0x06,0x0C,0x18,0x30,0x30,0x30,0x00},
-    /* 56 8      */ {0x3C,0x66,0x66,0x3C,0x66,0x66,0x3C,0x00},
-    /* 57 9      */ {0x3C,0x66,0x66,0x3E,0x06,0x0C,0x38,0x00},
-    /* 58 :      */ {0x00,0x18,0x18,0x00,0x00,0x18,0x18,0x00},
-    /* 59 ;      */ {0x00,0x18,0x18,0x00,0x00,0x18,0x18,0x30},
-    /* 60 <      */ {0x06,0x0C,0x18,0x30,0x18,0x0C,0x06,0x00},
-    /* 61 =      */ {0x00,0x00,0x7E,0x00,0x7E,0x00,0x00,0x00},
-    /* 62 >      */ {0x60,0x30,0x18,0x0C,0x18,0x30,0x60,0x00},
-    /* 63 ?      */ {0x3C,0x66,0x06,0x0C,0x18,0x00,0x18,0x00},
-    /* 64 @      */ {0x3C,0x66,0x6E,0x6A,0x6E,0x60,0x3C,0x00},
-    /* 65 A      */ {0x18,0x3C,0x66,0x7E,0x66,0x66,0x66,0x00},
-    /* 66 B      */ {0x7C,0x66,0x66,0x7C,0x66,0x66,0x7C,0x00},
-    /* 67 C      */ {0x3C,0x66,0x60,0x60,0x60,0x66,0x3C,0x00},
-    /* 68 D      */ {0x78,0x6C,0x66,0x66,0x66,0x6C,0x78,0x00},
-    /* 69 E      */ {0x7E,0x60,0x60,0x7C,0x60,0x60,0x7E,0x00},
-    /* 70 F      */ {0x7E,0x60,0x60,0x7C,0x60,0x60,0x60,0x00},
-    /* 71 G      */ {0x3C,0x66,0x60,0x6E,0x66,0x66,0x3C,0x00},
-    /* 72 H      */ {0x66,0x66,0x66,0x7E,0x66,0x66,0x66,0x00},
-    /* 73 I      */ {0x7E,0x18,0x18,0x18,0x18,0x18,0x7E,0x00},
-    /* 74 J      */ {0x06,0x06,0x06,0x06,0x06,0x66,0x3C,0x00},
-    /* 75 K      */ {0x66,0x6C,0x78,0x70,0x78,0x6C,0x66,0x00},
-    /* 76 L      */ {0x60,0x60,0x60,0x60,0x60,0x60,0x7E,0x00},
-    /* 77 M      */ {0x63,0x77,0x7F,0x6B,0x63,0x63,0x63,0x00},
-    /* 78 N      */ {0x66,0x76,0x7E,0x7E,0x6E,0x66,0x66,0x00},
-    /* 79 O      */ {0x3C,0x66,0x66,0x66,0x66,0x66,0x3C,0x00},
-    /* 80 P      */ {0x7C,0x66,0x66,0x7C,0x60,0x60,0x60,0x00},
-    /* 81 Q      */ {0x3C,0x66,0x66,0x66,0x6E,0x3C,0x06,0x00},
-    /* 82 R      */ {0x7C,0x66,0x66,0x7C,0x6C,0x66,0x66,0x00},
-    /* 83 S      */ {0x3C,0x66,0x60,0x3C,0x06,0x66,0x3C,0x00},
-    /* 84 T      */ {0x7E,0x18,0x18,0x18,0x18,0x18,0x18,0x00},
-    /* 85 U      */ {0x66,0x66,0x66,0x66,0x66,0x66,0x3C,0x00},
-    /* 86 V      */ {0x66,0x66,0x66,0x66,0x66,0x3C,0x18,0x00},
-    /* 87 W      */ {0x63,0x63,0x63,0x6B,0x7F,0x77,0x63,0x00},
-    /* 88 X      */ {0x66,0x66,0x3C,0x18,0x3C,0x66,0x66,0x00},
-    /* 89 Y      */ {0x66,0x66,0x3C,0x18,0x18,0x18,0x18,0x00},
-    /* 90 Z      */ {0x7E,0x06,0x0C,0x18,0x30,0x60,0x7E,0x00},
-    /* 91 [      */ {0x3C,0x30,0x30,0x30,0x30,0x30,0x3C,0x00},
-    /* 92 backsl */ {0xC0,0x60,0x30,0x18,0x0C,0x06,0x02,0x00},
-    /* 93 ]      */ {0x3C,0x0C,0x0C,0x0C,0x0C,0x0C,0x3C,0x00},
-    /* 94 ^      */ {0x10,0x38,0x6C,0xC6,0x00,0x00,0x00,0x00},
-    /* 95 _      */ {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
-    /* 96 `      */ {0x30,0x18,0x0C,0x00,0x00,0x00,0x00,0x00},
-    /* 97 a      */ {0x00,0x00,0x3C,0x06,0x3E,0x66,0x3E,0x00},
-    /* 98 b      */ {0x60,0x60,0x7C,0x66,0x66,0x66,0x7C,0x00},
-    /* 99 c      */ {0x00,0x00,0x3C,0x66,0x60,0x66,0x3C,0x00},
-    /* 100 d     */ {0x06,0x06,0x3E,0x66,0x66,0x66,0x3E,0x00},
-    /* 101 e     */ {0x00,0x00,0x3C,0x66,0x7E,0x60,0x3C,0x00},
-    /* 102 f     */ {0x1C,0x30,0x30,0x7C,0x30,0x30,0x30,0x00},
-    /* 103 g     */ {0x00,0x00,0x3E,0x66,0x66,0x3E,0x06,0x3C},
-    /* 104 h     */ {0x60,0x60,0x7C,0x66,0x66,0x66,0x66,0x00},
-    /* 105 i     */ {0x18,0x00,0x38,0x18,0x18,0x18,0x3C,0x00},
-    /* 106 j     */ {0x06,0x00,0x06,0x06,0x06,0x06,0x66,0x3C},
-    /* 107 k     */ {0x60,0x60,0x66,0x6C,0x78,0x6C,0x66,0x00},
-    /* 108 l     */ {0x38,0x18,0x18,0x18,0x18,0x18,0x3C,0x00},
-    /* 109 m     */ {0x00,0x00,0x66,0x7F,0x7F,0x6B,0x63,0x00},
-    /* 110 n     */ {0x00,0x00,0x7C,0x66,0x66,0x66,0x66,0x00},
-    /* 111 o     */ {0x00,0x00,0x3C,0x66,0x66,0x66,0x3C,0x00},
-    /* 112 p     */ {0x00,0x00,0x7C,0x66,0x66,0x7C,0x60,0x60},
-    /* 113 q     */ {0x00,0x00,0x3E,0x66,0x66,0x3E,0x06,0x06},
-    /* 114 r     */ {0x00,0x00,0x6C,0x76,0x60,0x60,0x60,0x00},
-    /* 115 s     */ {0x00,0x00,0x3C,0x60,0x3C,0x06,0x7C,0x00},
-    /* 116 t     */ {0x30,0x30,0x7C,0x30,0x30,0x30,0x1C,0x00},
-    /* 117 u     */ {0x00,0x00,0x66,0x66,0x66,0x66,0x3E,0x00},
-    /* 118 v     */ {0x00,0x00,0x66,0x66,0x66,0x3C,0x18,0x00},
-    /* 119 w     */ {0x00,0x00,0x63,0x6B,0x7F,0x3E,0x22,0x00},
-    /* 120 x     */ {0x00,0x00,0x66,0x3C,0x18,0x3C,0x66,0x00},
-    /* 121 y     */ {0x00,0x00,0x66,0x66,0x3E,0x06,0x3C,0x00},
-    /* 122 z     */ {0x00,0x00,0x7E,0x0C,0x18,0x30,0x7E,0x00},
-    /* 123 {     */ {0x0E,0x18,0x18,0x70,0x18,0x18,0x0E,0x00},
-    /* 124 |     */ {0x18,0x18,0x18,0x00,0x18,0x18,0x18,0x00},
-    /* 125 }     */ {0x70,0x18,0x18,0x0E,0x18,0x18,0x70,0x00},
-    /* 126 ~     */ {0x76,0xDC,0x00,0x00,0x00,0x00,0x00,0x00},
-    /* 127 DEL   */ {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}
-};
-
-/*----- Function: get_glyph -----
- PURPOSE: returns ptr to 8-row bitmap for the given ASCII character
- INPUT:   ch - ASCII character to look up
- OUTPUT:  ptr to array of FONT_ROWS bytes representing the glyph
- NOTES:   characters outside ASCII 32-127 return the space glyph
-*/
-static const UINT8 *get_glyph(char ch)
-{
-    unsigned char idx = (unsigned char)ch;
-    if (idx < 32 || idx > 127) idx = 32;   /* default to space */
-    return font_table[idx - 32];
-}
-
-void plot_bitmap_16(UINT16 *base, UINT16 row, UINT16 col, UINT16 height, UINT16 *bitmap)
-{
-    UINT8  *byte_base = (UINT8 *)base;
-    UINT16  r, b, word, mask;
-
-    for (r = 0; r < height; r++)
-    {
-        word = bitmap[r];
-        mask = 0x8000;
-        for (b = 0; b < 16; b++)
-        {
-            if (word & mask)
-                if ((row + r) < SCREEN_HEIGHT && (col + b) < SCREEN_WIDTH)
-                    plot_pixel(byte_base, row + r, col + b);
-            mask >>= 1;
-        }
-    }
-}
-
-void plot_bitmap_32(UINT32 *base, UINT16 row, UINT16 col, UINT16 height, const UINT32 *bitmap)
-{
-    UINT8  *byte_base = (UINT8 *)base;
-    UINT16  r, b;
-    UINT32  word, mask;
-
-    for (r = 0; r < height; r++)
-    {
-        word = bitmap[r];
-        mask = 0x80000000UL;
-        for (b = 0; b < 32; b++)
-        {
-            if (word & mask)
-                if ((row + r) < SCREEN_HEIGHT && (col + b) < SCREEN_WIDTH)
-                    plot_pixel(byte_base, row + r, col + b);
-            mask >>= 1;
-        }
-    }
-}
-
-void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch)
-{
-    const UINT8 *glyph = get_glyph(ch);
-    UINT16 r, b;
-    UINT8  row_bits, mask;
-
-    for (r = 0; r < FONT_ROWS; r++)
-    {
-        row_bits = glyph[r];
-        mask     = 0x80;
-        for (b = 0; b < 8; b++)
-        {
-            if (row_bits & mask)
-                if ((row + r) < SCREEN_HEIGHT && (col + b) < SCREEN_WIDTH)
-                    plot_pixel(base, row + r, col + b);
-            mask >>= 1;
-        }
-    }
-}
-
-void plot_string(UINT8 *base, UINT16 row, UINT16 col, char *ch)
-{
-    while (*ch != '\0')
-    {
-        plot_character(base, row, col, *ch);
-        col += 8;
-        ch++;
-    }
-}
 
 /* ════════════════════════════════════════════════════════════════
  *  TEST DRIVER
@@ -562,7 +203,20 @@ int main(void)
     /* ── Test 6: plot_bitmap_8 ──────────────────────────────── */
     printf("--- Test 6: plot_bitmap_8 ---\n");
     reset_fb();
-    plot_bitmap_8(fb8, 0, 0, 4);
+
+    // bitmap with an x in it s
+    UINT8 bmp8[] = {
+        0xFF,   /* 1111 1111 */
+        0x81,   /* 1000 0001 */
+        0xC3,   /* 1100 0011 */
+        0xA5,   /* 1010 0101 */
+        0xA5,   /* 1010 0101 */
+        0xC3,   /* 1100 0011 */
+        0x81,   /* 1000 0001 */
+        0xFF    /* 1111 1111 */
+    };
+
+    plot_bitmap_8(fb8, 0, 0, 4,bmp8);
     print_region(fb8, 0, 0, 4, 10);
 
     /* top row should be all 1s (0xFF bitmap row) */
