@@ -28,7 +28,7 @@
  OUTPUT: None
 
 */
-void render_next_box(UINT8 *base, const NextBox *box);
+void render_next_box(UINT32 *base, const NextBox *box);  
 
 /* =========================================== */
 

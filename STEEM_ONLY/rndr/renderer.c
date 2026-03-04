@@ -1,4 +1,3 @@
-/* Author: Aaron */
 
 #include "renderer.h"
 #include "raster.h"
@@ -6,6 +5,7 @@
 #define CELL_SIZE 16
 #define NEXT_BOX_ROW 50
 #define NEXT_BOX_COL 500
+#define NEXT_BOX_SIZE 80
 
 #define HOLD_BOX_ROW 320
 #define HOLD_BOX_COL 500
@@ -18,17 +18,17 @@
 #define LINES_X 200
 #define LINES_Y 50
 
-void render_next_box(UINT8 *base, const NextBox *box) {
+void render_next_box(UINT32 *base, const NextBox *box) { 
     Tetromino preview_piece;
     int next_type;
 
-    /* Get the next piece type */
     next_type = get_next_type(box);
+    
+    init_tetromino(&preview_piece, next_type, (NEXT_BOX_COL + 16) / CELL_SIZE);
+    preview_piece.row = (NEXT_BOX_ROW + 16) / CELL_SIZE;
 
-    init_tetromino(&preview_piece, next_type, NEXT_BOX_COL / CELL_SIZE);
-    preview_piece.row = NEXT_BOX_ROW / CELL_SIZE;
-
-    render_piece(&preview_piece, (UINT32*)base);
+    plot_rectangle(base, NEXT_BOX_ROW, NEXT_BOX_COL, NEXT_BOX_SIZE, NEXT_BOX_SIZE);
+    render_piece(&preview_piece, base);
 }
 
 /* =========================================== */

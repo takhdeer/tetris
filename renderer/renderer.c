@@ -1,4 +1,3 @@
-// Author: Aaron
 
 #include "renderer.h"
 #include "../raster_graphics_library/raster.h"
