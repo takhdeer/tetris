@@ -1,7 +1,7 @@
 #ifndef RASTER_H
 #define RASTER_H
 
-#include "../types.h"
+#include "../STEEM_ONLY/rndr/types.h"
 
 /*----- Function: clear_screen -----
 v

@@ -5,16 +5,16 @@ BYTES_PER_ROW   EQU 80
 SCREEN_HEIGHT   EQU 400
 SCREEN_WIDTH    EQU 640
 
-    xref font_table     ; import the font table from raster.c
+    xref fnt_tbl     ; import the font table from raster.c
 
 ;=============================================================================
 ; plot_pixel(UINT8 *base, UINT16 row, UINT16 col)
 ; stack on entry: base(4 bytes), row(2 bytes), col(2 bytes)
 ;=============================================================================
 
-    xdef plot_pixel             ; exporting the symbol
+    xdef plt_pxl             ; exporting the symbol
 
-plot_pixel:
+plt_pxl:
     movem.l d0-d2/a0, -(sp)     ;save registers
 
     ;Arguments
@@ -48,47 +48,56 @@ plot_pixel:
 ; C: void plot_square(UINT32 *base, UINT16 row, UINT16 col, UINT16 side)
 ;=============================================================================
 ;=============================================================================
-	xdef plot_sqr
+	xdef plt_sqr
 
-plot_sqr:
+plt_sqr:
 	move.w	16(sp),-(sp)		;push width (side)
 	move.w	18(sp),-(sp)			;push length (side)
 	move.w	16(sp),-(sp)		;push col 
 	move.w	16(sp),-(sp)		;push row 
 	move.l	16(sp),-(sp)		;push base
 
-	jsr		plot_rectangle
+	jsr		plt_rec
 	
 	lea		24(sp),sp			;clean up stack
 	rts
 
-plot_vert_l:
+;=============================================================================
+;=============================================================================
+;  plot_vertical_line - Plots a vertical line on the screen.
+; C: void plot_vertical_line(UINT32 *base, UINT16 row, UINT16 col, UINT16 length);
+;=============================================================================
+;=============================================================================
+    xdef    plt_vl
+
+
+plt_vl:
 	movem.l d3-d4,-(sp)
 	
 	move.w	20(sp),d3	; d3 = length
-	beq		vert_done		; if length == 0, exit
+	beq		vl_done		; if length == 0, exit
 	
 	clr.w	d4			; d4: i = 0
 
-vert_loop:
+vl_loop:
 	cmp.w	d3,d4		; compare i with length
-	bge		vert_done		; if i >= length, exit
+	bge		vl_done		; if i >= length, exit
 	
-	; calling plot_pixel(base, row + i, col)
+	; calling plt_pxl(base, row + i, col)
 	move.w	18(sp),-(sp)	;push col
 	move.w	16(sp),d0		;d0 = row
 	add.w	d4,d0			;d0 = row + i
 	move.w 	d0,-(sp)		;push row + i
 	move.l 	16(sp),-(sp)	;push base
 	
-	jsr		plot_pixel
+	jsr		plt_pxl
 	
 	lea		8(sp),sp		
 	
 	addq.w 	#1,d4			;i++
-	bra		vert_loop
+	bra		vl_loop
 	
-vert_done:
+vl_done:
 	movem.l (sp)+,d3-d4		;restoring registers
 	rts
 	
@@ -112,20 +121,20 @@ bitm_16:
 	
 	clr.w	d6					;d6: r = 0
 
-height_loop:
+ht_loop:
 	cmp.w	d5,d6				
-	bge		b16_done
+	bge		b16_dne
 	
 	move.w	(a3)+,d7			;d7 = bitmap[r]
 	move.w 	#$8000,d0			;mask
 	clr.w	d1 					;b = 0
 	
-width_loop:
+wd_loop:
 	cmp.w	#16,d1
-	bge		b16_next_row
+	bge		b16_nxt
 	
 	btst	d1,d7				;test bit
-	beq		b16_skip
+	beq		b16_skp
 	
 	move.w	d4,-(sp)			;push col + bx
 	move.w 	d1,(sp)				
@@ -133,18 +142,18 @@ width_loop:
 	move.w 	d6,(sp)
 	move.l 	a2,-(sp)			;push base
 	
-	jsr		plot_pixel
+	jsr		plt_pxl
 	lea		8(sp),sp
 	
-b16_skip:
+b16_skp:
 	addq.w	#1,d1
-	bra		width_loop
+	bra		wd_loop
 	
-b16_next_row:
+b16_nxt:
 	addq.w	#1,d6
-	bra		height_loop
+	bra		ht_loop
 	
-b16_done:
+b16_dne:
 	movem.l	(sp)+,d3-d7/a2-a3	;restoring registers
 	rts
 
@@ -164,9 +173,9 @@ bitm_32:
 
     clr.w   d3                  ; r = 0
 
-outer_loop:
+out_lp:
     cmp.w   d2, d3              ; r < height?
-    bge     .bitmap_done
+    bge     .b32_dne
 
     move.l  (a1, d3.w*4), d5   ; word = bitmap[r]  -- note: d3 is word index
     ; Actually bitmap[r] offset = r*4
@@ -179,15 +188,15 @@ outer_loop:
 
     clr.w   d6                  ; b = 0
 
-inner_loop:
+in_lp:
     cmp.w   #32, d6             ; b < 32?
-    bge     .next_row
+    bge     .nxt_row
 
     move.l  d5, d7
     and.l   d4, d7              ; word & mask
-    beq     .skip_pixel
+    beq     .skp_pxl
 
-    ; call plot_pixel(base, row+r, col+b)
+    ; call plt_pxl(base, row+r, col+b)
     move.w  d1, d7
     add.w   d6, d7              ; col + b
     move.w  d0, -(sp)
@@ -197,7 +206,7 @@ inner_loop:
     move.l  a0, -(sp)           ; base
 
     ; Rebuild push correctly:
-    ; plot_pixel(base, row+r, col+b)
+    ; plt_pxl(base, row+r, col+b)
     addq.l  #8, sp              ; undo the messy above
 
     ; Clean push:
@@ -208,19 +217,19 @@ inner_loop:
     add.w   d3, d7              ; row + r
     move.w  d7, -(sp)           ; push row+r
     move.l  a0, -(sp)           ; push base
-    jsr     plot_pixel
+    jsr     plt_pxl
     addq.l  #8, sp              ; pop args (4 + 2 + 2)
 
-skip_pixel:
+skp_pxl:
     lsr.l   #1, d4              ; mask >>= 1
     addq.w  #1, d6              ; b++
-    bra     .inner_loop
+    bra     .in_lp
 
-next_row:
+nxt_row:
     addq.w  #1, d3              ; r++
-    bra     .outer_loop
+    bra     .out_lp
 
-bitmap_done:
+b32_dne:
     movem.l (sp)+, d0-d7/a0-a2
     
     rts
@@ -230,7 +239,7 @@ bitmap_done:
 ; UINT16 length, UINT16 width)
 ; stack: base(4), row(2), col(2), length(2), width(2)
 ;=============================================================================
-plot_rectangle:
+plt_rec:
     movem.l d0-d6/a0, -(sp)    ; 8 regs = 32 bytes
 
     ; Args at offset 32 + 4 = 36
@@ -245,45 +254,45 @@ plot_rectangle:
     move.w  d1, d5
     add.w   d3, d5              ; d5 = col + width
 
-top_bot_loop:
+tb_loop:
     cmp.w   d5, d4              ; c < col+width?
-    bge     .top_bot_done
+    bge     .tb_done
 
-    ; plot_pixel(base, row, c)
+    ; plt_pxl(base, row, c)
     move.w  d4, -(sp)
     move.w  d0, -(sp)
     move.l  a0, -(sp)
-    jsr     plot_pixel
+    jsr     plt_pxl
     addq.l  #8, sp
 
-    ; plot_pixel(base, row+length-1, c)
+    ; plt_pxl(base, row+length-1, c)
     move.w  d4, -(sp)
     move.w  d0, d6
     add.w   d2, d6
     subq.w  #1, d6              ; row + length - 1
     move.w  d6, -(sp)
     move.l  a0, -(sp)
-    jsr     plot_pixel
+    jsr     plt_pxl
     addq.l  #8, sp
 
     addq.w  #1, d4              ; c++
-    bra     .top_bot_loop
+    bra     .tb_loop
 
-top_bot_done:
+tb_done:
     ; left/right edge: for r = row; r < row + length; r++
     move.w  d0, d4              ; r = row
     move.w  d0, d5
     add.w   d2, d5              ; d5 = row + length
 
-left_right_loop:
+lr_loop:
     cmp.w   d5, d4              ; r < row+length?
-    bge     .rect_done
+    bge     .rec_dne
 
     ; plot_pixel(base, r, col)
     move.w  d1, -(sp)
     move.w  d4, -(sp)
     move.l  a0, -(sp)
-    jsr     plot_pixel
+    jsr     plt_pxl
     addq.l  #8, sp
 
     ; plot_pixel(base, r, col+width-1)
@@ -293,13 +302,13 @@ left_right_loop:
     move.w  d6, -(sp)
     move.w  d4, -(sp)
     move.l  a0, -(sp)
-    jsr     plot_pixel
+    jsr     plt_pxl
     addq.l  #8, sp
 
     addq.w  #1, d4              ; r++
-    bra     .left_right_loop
+    bra     .lr_loop
 
-rect_done:
+rec_dne:
     movem.l (sp)+, d0-d6/a0
     
     rts
@@ -309,7 +318,9 @@ rect_done:
 ; ,UINT16 length, UINT16 width)
 ; stack: base(4), row(2), col(2), length(2), width(2)
 ;=============================================================================
-clear_region:
+    xdef clr_rgn
+
+clr_rgn:
     movem.l d0-d7/a0-a1, -(sp) ; 10 regs = 40 bytes
 
     ; Args at offset 40 + 4 = 44
@@ -324,7 +335,7 @@ clear_region:
     move.w  d0, d5
     add.w   d2, d5              ; d5 = row + length
 
-cr_row_loop:
+cr_rlp:
     cmp.w   d5, d4              ; r < row+length?
     bge     .cr_done
     cmp.w   #SCREEN_HEIGHT, d4 ; r < SCREEN_HEIGHT?
@@ -340,11 +351,11 @@ cr_row_loop:
     move.w  d1, d7
     add.w   d3, d7              ; d7 = col + width
 
-cr_col_loop:
+cr_clp:
     cmp.w   d7, d6              ; c < col+width?
-    bge     .cr_next_row
+    bge     .cr_nxt
     cmp.w   #SCREEN_WIDTH, d6  ; c < SCREEN_WIDTH?
-    bge     .cr_next_row
+    bge     .cr_nxt
 
     ; byte_addr = row_ptr + (c >> 3)
     move.w  d6, d5
@@ -359,11 +370,11 @@ cr_col_loop:
     and.b   d1, (a1, d5.l)     ; clear the bit
 
     addq.w  #1, d6              ; c++
-    bra     .cr_col_loop
+    bra     .cr_clp
 
-cr_next_row:
+cr_nxt:
     addq.w  #1, d4              ; r++
-    bra     .cr_row_loop
+    bra     .cr_rlp
 
 cr_done:
     movem.l (sp)+, d0-d7/a0-a1
@@ -374,7 +385,7 @@ cr_done:
 ; plot_string(UINT8 *base, UINT16 row, UINT16 col, char *ch)
 ; stack: base(4), row(2), col(2), ch(4)
 ;=============================================================================
-plot_string:
+plt_str:
     movem.l d0-d2/a0-a1, -(sp) ; 5 regs = 20 bytes
 
     ; Args at offset 20 + 4 = 24
@@ -394,7 +405,7 @@ ps_loop:
     move.w  d1, -(sp)           ; push col
     move.w  d0, -(sp)           ; push row
     move.l  a0, -(sp)           ; push base
-    jsr     plot_character
+    jsr     plt_chr
     ; addq.l  #8, sp              ; pop 4+2+2+2 = 10... use proper adjustment
     ; Note: args = 4+2+2+2 = 10 bytes, but word-aligned so addq.l is fine
     ; Actually adjust by 10:
@@ -413,10 +424,10 @@ ps_done:
 ; plot_character - draws an 8x16 character from font table
 ; C : void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch)
 ;=============================================================================
-	xdef	plot_char
-    xdef    font_table          ; imported from raster.c
+	xdef	plt_chr
+    xdef    fnt_tbl          ; imported from raster.c
 	
-plot_char:
+plt_chr:
     movem.l D3-D6/A2-A3,-(SP)   ; save registers
     
     move.l  28(sp),a2           ; a2 = base
@@ -426,31 +437,31 @@ plot_char:
     
     ;condition check 
     cmp.w   #32, d5
-    blt     pc_use_space
+    blt     pc_ussp
     cmp.w   #127, d5
-    bgt     pc_use_space
-    bra     pc_calc_glyph
+    bgt     pc_ussp
+    bra     pc_calc
 
-pc_use_space:
+pc_ussp:
     move.w  #32,d5
 
-pc_calc_glyph:
+pc_calc:
     ; index = ch - 32
-    ; offset into font_table = index * 8  (8 bytes per glyph)
+    ; offset into fnt_tbl = index * 8  (8 bytes per glyph)
 
     sub.w   #32, d5             ; d5 = ch - 32
     lsl.w   #3, d5              ; d5 = index * 8 (shift left 3 = multiply by 8)
     ext.l   d5
 
-    lea     font_table, a3      ; a3 = base of font_table
-    add.l   d5, a3              ; a3 = &font_table[index][0]
+    lea     fnt_tbl, a3      ; a3 = base of fnt_tbl
+    add.l   d5, a3              ; a3 = &fnt_tbl[index][0]
 
     clr.w   d6                  ; d6 = i = 0
 
     
-char_loop:
+ch_loop:
     cmp.w   #16,d6
-    bge     char_done
+    bge     ch_done
     
     ; Calculate screen_pos = base + (row + i) * 80 + (col >> 3)
     move.w  d3,d0               ; d0 = row
@@ -467,9 +478,9 @@ char_loop:
     or.b    d1,(a0)             ; OR into screen memory
     
     addq.w  #1,d6               ; i++
-    bra     char_loop
+    bra     ch_loop
     
-char_done:
+ch_done:
     movem.l (sp)+,d3-d6/a2-a3
     
     rts
@@ -483,23 +494,23 @@ char_done:
 ;   8(sp)  = return address
 ;  12(sp)  = base (4 bytes)
 ;
-; Calls clear_region(base, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH)
+; Calls clr_rgn(base, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH)
 ;=============================================================================
-    xdef    clear_screen
+    xdef    clr_rgn
 
 clear_screen:
     movem.l d0/a0, -(sp)        ; save registers (8 bytes)
 
     move.l  12(sp), a0          ; a0 = base
 
-    ; push args for clear_region    (base, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH)
+    ; push args for clr_rgn    (base, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH)
     move.w  #SCREEN_WIDTH,  -(sp)   ; width  = 640
     move.w  #SCREEN_HEIGHT, -(sp)   ; length = 400
     move.w  #0, -(sp)               ; col    = 0
     move.w  #0, -(sp)               ; row    = 0
     move.l  a0, -(sp)               ; base
 
-    jsr     clear_region
+    jsr     clr_rgn
     add.l   #12, sp             ; pop args (4+2+2+2+2 = 12 bytes)
 
     movem.l (sp)+, d0/a0        ; restore registers
@@ -546,11 +557,11 @@ henry_hline_loop:
     cmp.w   #SCREEN_WIDTH, d0
     bge     henry_hline_done
 
-    ; plot_pixel(base, row, col + i)
+    ; plt_pxl(base, row, col + i)
     move.w  d0, -(sp)           ; push col + i
     move.w  d3, -(sp)           ; push row
     move.l  a2, -(sp)           ; push base
-    jsr     plot_pixel
+    jsr     plt_pxl
     add.l   #8, sp              ; pop args (4+2+2 = 8 bytes)
 
     addq.w  #1, d6              ; i++
@@ -619,7 +630,7 @@ henry_bm8_bit_loop:
     cmp.w   #SCREEN_WIDTH, d2
     bge     henry_bm8_skip
 
-    ; plot_pixel(base, row + r, col + b)
+    ; plt_pxl(base, row + r, col + b)
     move.w  d4, d2
     add.w   d1, d2              ; col + b
     move.w  d2, -(sp)           ; push col + b
@@ -627,7 +638,7 @@ henry_bm8_bit_loop:
     add.w   d6, d2              ; row + r
     move.w  d2, -(sp)           ; push row + r
     move.l  a2, -(sp)           ; push base
-    jsr     plot_pixel
+    jsr     plt_pxl
     add.l   #8, sp              ; pop args (4+2+2 = 8 bytes)
 
 henry_bm8_skip:
@@ -753,11 +764,11 @@ henry_line_loop:
     cmp.w   #SCREEN_HEIGHT, d3
     bge     henry_line_no_plot
 
-    ; plot_pixel(base, start_row, start_col)
+    ; plt_pxl(base, start_row, start_col)
     move.w  d4, -(sp)           ; push start_col
     move.w  d3, -(sp)           ; push start_row
     move.l  a2, -(sp)           ; push base
-    jsr     plot_pixel
+    jsr     plt_pxl
     add.l   #8, sp              ; pop args
 
 henry_line_no_plot:
