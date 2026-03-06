@@ -51,6 +51,8 @@ int main() {
     clear_screen((UINT8 *)base);
 
     init_tetromino(&test_model.piece, TETROMINO_T, 5);
+
+    /*Roatating tetrimino clockwise */
     rotate_tetromino_cw(&test_model.piece);
     test_model.piece.row = 8;
     test_model.game_state.score = 2400;
@@ -65,6 +67,25 @@ int main() {
 
     /* Press any key to exit */
     Crawcin();
-    
+
+    clear_screen((UINT8 *)base);
+
+    init_tetromino(&test_model.piece, TETROMINO_T, 5);
+    rotate_tetromino_cw(&test_model.piece);
+
+    /* Move tetrimino down*/
+    move_tetromino_down(&test_model.piece);
+    test_model.piece.row = 8;
+    test_model.game_state.score = 2400;
+    test_model.game_state.level = 5;
+    test_model.game_state.lines_cleared = 25;
+
+    /* Render to screen */
+    render_matrix(base, &test_model.Matrix);
+    render_piece(&test_model.piece, base);
+    render_score(&test_model.game_state, (UINT8 *)base);
+    render_level(&test_model.game_state, (UINT8 *)base);
+
+
     return 0;
 }
