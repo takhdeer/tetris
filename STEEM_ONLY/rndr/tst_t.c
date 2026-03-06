@@ -72,10 +72,10 @@ int main() {
 
     init_tetromino(&test_model.piece, TETROMINO_T, 5);
     rotate_tetromino_cw(&test_model.piece);
-
+    test_model.piece.row = 8;
+        
     /* Move tetrimino down*/
     move_tetromino_down(&test_model.piece);
-    test_model.piece.row = 8;
     test_model.game_state.score = 2400;
     test_model.game_state.level = 5;
     test_model.game_state.lines_cleared = 25;
