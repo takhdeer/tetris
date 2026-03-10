@@ -2,40 +2,45 @@
 # Compiler: cc68x
 # Author: Takh
 CC = cc68x
-CFLAGS = -I.
-OBJS = tst_t.o renderer.o raster.o cond.o gstate.o matrix.o \
-       model.o synch.o tetrom.o
-TARGET = tst_t.prg
+OBJS = tst.o renderer.o raster.o cond.o gstate.o matrix.o \
+       next_box.o hold_box.o model.o synch.o tetrom.o
+TARGET = tst.prg
 
 $(TARGET): $(OBJS)
 	$(CC) $(OBJS) -o $(TARGET)
 
-tst_t.o: tst_t.c
-	$(CC) $(CFLAGS) -c tst_t.c
+tst.o: tst.c
+	$(CC) -c tst.c
 
 renderer.o: renderer.c
-	$(CC) $(CFLAGS) -c renderer.c
+	$(CC) -c renderer.c
 
 raster.o: raster.c
-	$(CC) $(CFLAGS) -c raster.c
+	$(CC) -c raster.c
 
 cond.o: cond.c
-	$(CC) $(CFLAGS) -c cond.c
+	$(CC) -c cond.c
 
 gstate.o: gstate.c
-	$(CC) $(CFLAGS) -c gstate.c
+	$(CC) -c gstate.c
 
 matrix.o: matrix.c
-	$(CC) $(CFLAGS) -c matrix.c
+	$(CC) -c matrix.c
+
+next_box.o: next_box.c
+	$(CC) -c next_box.c
+
+hold_box.o: hold_box.c
+	$(CC) -c hold_box.c
 
 model.o: model.c
-	$(CC) $(CFLAGS) -c model.c
+	$(CC) -c model.c
 
 synch.o: synch.c
-	$(CC) $(CFLAGS) -c synch.c
+	$(CC) -c synch.c
 
 tetrom.o: tetrom.c
-	$(CC) $(CFLAGS) -c tetrom.c
+	$(CC) -c tetrom.c
 
 clean:
 	del *.o
