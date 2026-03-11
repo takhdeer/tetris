@@ -1,3 +1,7 @@
+/* this tetris.c file is the main source file where the Tetris game will run and live */
+/* authors: Takhdeer, Henry */
+
+/* ====== REQUIRED INCLUDES ====== */
 #include <stdio.h>
 #include <osbind.h>
 #include "input.h"
@@ -10,7 +14,14 @@
 #include "hold_box.h"
 #include "next_box.h"
 #include "matrix.h"
-/* Helper functions */
+
+/* ====== REQUIRED CONSTANTS ====== */
+const char LEFT_ARROW = 0x4B;        /* move left */
+const char RIGHT_ARROW = 0x4D;       /* move right */
+const char UP_ARROW = 0x48;          /* rotate */
+const char DOWN_ARROW = 0x50;        /* soft drop */
+
+/* ====== HELPER FUNCTIONS ====== */
 
 /* Get time function */
 UINT32 get_time() {
@@ -25,15 +36,18 @@ UINT32 get_time() {
     return timeNow;
 }
 
+/* ====== MAIN TETRIS GAME ====== */
+
 int main() {
     UINT32 timeThen;
     UINT32 timerNow;
-    UINT8 quit = 0;
+    UINT8 quit = 0; /* important: quit is set to FALSE */
     Model game_model;
 
     UINT32 *base = (UINT32 *)Physbase(); /* HM added entire line */
     clear_screen((UINT8 *) base);
 
+    /* INITIALIZE GAME MODEL (Tetris State: START!) */
     init_model(&game_model); /* HM: added & */
     
     init_tetromino(&game_model.piece, TETROMINO_I, 3);
@@ -44,7 +58,7 @@ int main() {
     game_model.game_state.level = 3;
     game_model.game_state.lines_cleared = 15;
 
-    /* Render everything to screen */
+    /* RENDER GAME MODEL everything to screen (Render State: FIRST FRAME) */
     render_matrix(base, &game_model.Matrix);
     render_next_box((UINT32 *) base, &game_model.nbox);
     render_hold_box(base, &game_model.hbox);
@@ -54,7 +68,48 @@ int main() {
 
     timeThen = get_time();
 
-    Crawcin();  /* Replace with main game loop*/
+    /* MAIN TETRIS GAME LOOP */
+    /* Crawcin(); commented out temporarily */
+    while (quit != 1) {
+        /* If Input Pending = Update Model Change REQUESTS */
+        if (has_input()) {
+            char key = get_input(); /* store key press as a master key */
+        
+            /* TETROMINO: MOVEMENT + ROTATE + SOFT DROP (4 KEYS) */
+            if (key == 0) {
+
+                key = get_input();  /* update key with 2nd byte for correct comparison with arrow scan codes */
+
+                if (key == LEFT_ARROW) {
+                    /* GAME LOGIC: move left */
+                }
+
+                else if (key == RIGHT_ARROW) {
+                    /* GAME LOGIC: move right */
+                }
+
+                else if (key == UP_ARROW) {
+                    /* GAME LOGIC: rotate */
+                }
+
+                else if (key == DOWN_ARROW) {
+                    /* GAME LOGIC: soft drop */
+                }
+            }
+
+            /* TETROMINO: HOLD + QUIT (2 KEYS) */
+            else {
+                if (key == 'h') {
+                    /* GAME LOGIC: hold */
+                }
+                else if (key == 'q') {
+                    quit = 1;
+                }
+            }
+        }
+
+        /* If Clock Ticked = Update Model DATA */
+    }
 
     return 0;
 }
