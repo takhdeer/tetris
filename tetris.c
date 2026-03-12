@@ -1,5 +1,5 @@
 /* this tetris.c file is the main source file where the Tetris game will run and live */
-/* authors: Takhdeer, Henry */
+/* authors: Takhdeer, Henry, Aaron */
 
 /* ====== REQUIRED INCLUDES ====== */
 #include <stdio.h>
@@ -40,7 +40,8 @@ UINT32 get_time() {
 
 int main() {
     UINT32 timeThen;
-    UINT32 timerNow;
+    UINT32 timeNow;
+    UINT32 timeElapsed;
     UINT8 quit = 0; /* important: quit is set to FALSE */
     Model game_model;
 
@@ -81,26 +82,26 @@ int main() {
                 key = get_input();  /* update key with 2nd byte for correct comparison with arrow scan codes */
 
                 if (key == LEFT_ARROW) {
-                    /* GAME LOGIC: move left */
+                    game_model.request_move_left = 1;
                 }
 
                 else if (key == RIGHT_ARROW) {
-                    /* GAME LOGIC: move right */
+                    game_model.request_move_right = 1;
                 }
 
                 else if (key == UP_ARROW) {
-                    /* GAME LOGIC: rotate */
+                    game_model.request_rotate = 1;
                 }
 
                 else if (key == DOWN_ARROW) {
-                    /* GAME LOGIC: soft drop */
+                    game_model.request_soft_drop = 1;
                 }
             }
 
             /* TETROMINO: HOLD + QUIT (2 KEYS) */
             else {
                 if (key == 'h') {
-                    /* GAME LOGIC: hold */
+                    game_model.request_hold = 1;
                 }
                 else if (key == 'q') {
                     quit = 1;
@@ -109,6 +110,66 @@ int main() {
         }
 
         /* If Clock Ticked = Update Model DATA */
+        timeNow = get_time();
+        timeElapsed = timeNow - timeThen;
+
+        if (timeElapsed > 0) {
+
+            /* Process asynchronous requests */
+            if (game_model.request_move_left) {
+                if (!check_collision(&game_model.Matrix, &game_model.piece, game_model.piece.col - 1, game_model.piece.row)) 
+                {
+                    move_tetromino_left(&game_model.piece);
+                }
+                game_model.request_move_left = 0;  /* Clear request */
+            }
+
+            if (game_model.request_move_right) {
+                if (!check_collision(&game_model.Matrix, &game_model.piece, game_model.piece.col + 1, game_model.piece.row)) 
+                {
+                    move_tetromino_right(&game_model.piece);
+                }
+                game_model.request_move_right = 0;  /* Clear request */
+            }
+
+            if (game_model.request_rotate) {
+                Tetromino temp = game_model.piece;
+                rotate_tetromino_cw(&temp);
+
+                if (!check_collision(&game_model.Matrix, &temp, temp.col, temp.row)) 
+                {
+                    game_model.piece = temp;
+                }
+                game_model.request_rotate = 0;  /* Clear request */
+            }
+
+            if (game_model.request_soft_drop) {
+                if (can_move_down(&game_model)) 
+                {
+                    move_tetromino_down(&game_model.piece);
+                }
+                game_model.request_soft_drop = 0;  /* Clear request */
+            }
+
+            if (game_model.request_hold) {
+                /* TODO: implement hold logic */
+                game_model.request_hold = 0; /* Clear request*/
+            }
+
+            /* Trigger synchronous events based on timeElapsed */
+            handle_tick(&game_model);
+
+            /* Render model */
+            clear_screen((UINT8 *)base);
+            render_matrix(base, &game_model.Matrix);
+            render_next_box((UINT32 *) base, &game_model.nbox);
+            render_hold_box(base, &game_model.hbox);
+            render_piece(&game_model.piece, base);
+            render_score(&game_model.game_state, (UINT8 *)base);
+            render_level(&game_model.game_state, (UINT8 *)base);
+
+            timeThen = timeNow;
+        }
     }
 
     return 0;

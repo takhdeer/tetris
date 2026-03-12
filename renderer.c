@@ -55,8 +55,8 @@ void render_matrix(UINT32 *base, const Matrix *gameGrid) {
                 plot_rectangle(base, pixel_row, pixel_col, CELL_SIZE, CELL_SIZE);
 
                 /* Larger dot (for locked pieces) */
-                center_x = pixel_col + (BLOCK_SIZE / 2) - (dot_size / 2);
-                center_y = pixel_row + (BLOCK_SIZE / 2) - (dot_size / 2);
+                center_x = pixel_col + (CELL_SIZE / 2) - (dot_size / 2);
+                center_y = pixel_row + (CELL_SIZE / 2) - (dot_size / 2);
                 for (i = 0 ; i < dot_size ; i++) {
                     plot_horizontal_line(base, center_y + i, center_x, dot_size);
                 }
@@ -102,15 +102,15 @@ void render_piece(const Tetromino *piece, UINT32 *base) {
         for (piece_col = 0; piece_col < 4; piece_col++) {
             /* If cell is part of the piece */
             if (get_cell(piece, piece_row, piece_col) != 0) {
-                screen_x = (piece->col + piece_col) * BLOCK_SIZE;
-                screen_y = (piece->row + piece_row) * BLOCK_SIZE;
+                screen_x = (piece->col + piece_col) * CELL_SIZE;
+                screen_y = (piece->row + piece_row) * CELL_SIZE;
 
                 /* Outlining tetromino */
-                plot_rectangle(base, screen_y, screen_x, BLOCK_SIZE, BLOCK_SIZE);
+                plot_rectangle(base, screen_y, screen_x, CELL_SIZE, CELL_SIZE);
 
                 /* Drawing dot */
-                center_x = screen_x + (BLOCK_SIZE / 2) - (dot_size / 2);
-                center_y = screen_y + (BLOCK_SIZE / 2) - (dot_size / 2);
+                center_x = screen_x + (CELL_SIZE / 2) - (dot_size / 2);
+                center_y = screen_y + (CELL_SIZE / 2) - (dot_size / 2);
                 for (i = 0 ; i < dot_size ; i++) {
                     plot_horizontal_line(base, center_y + i, center_x, dot_size);
                 }

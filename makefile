@@ -2,7 +2,7 @@
 # Compiler: cc68x
 # Author: Takh
 CC = cc68x
-OBJS = tetris.o renderer.o raster.o cond.o gstate.o matrix.o \
+OBJS = tetris.o input.o renderer.o raster.o cond.o gstate.o matrix.o \
        next_box.o hold_box.o model.o synch.o tetrom.o
 TARGET = tetris.tos
 
@@ -11,6 +11,9 @@ $(TARGET): $(OBJS)
 
 tetris.o: tetris.c
 	$(CC) -c tetris.c
+
+input.o: input.c
+	$(CC) -c input.c
 
 renderer.o: renderer.c
 	$(CC) -c renderer.c

@@ -16,6 +16,13 @@ typedef struct {
     Tetromino piece;
     NextBox   nbox;
     HoldBox   hbox;
+
+    /* for input */
+    int request_move_left;
+    int request_move_right;
+    int request_rotate;
+    int request_soft_drop;
+    int request_hold;
 } Model;
 
 extern Model initial_model;

@@ -6,8 +6,8 @@
  * 
  */
 
-#include "input.h";
-#include <osbind.h>;
+#include "input.h"
+#include <osbind.h>
 
 int has_input() {
     return Cconis();
