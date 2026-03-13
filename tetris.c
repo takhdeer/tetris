@@ -71,7 +71,7 @@ int main() {
     render_level(&game_model.game_state, (UINT8 *)base);
 
     timeThen = get_time();
-
+    
     /* MAIN TETRIS GAME LOOP */
     while (quit != 1) {
         /* If Input Pending = Update Model Change REQUESTS */
