@@ -68,14 +68,16 @@ int main() {
     render_level(&game_model.game_state, (UINT8 *)base);
 
     timeThen = get_time();
-
+    
     /* MAIN TETRIS GAME LOOP */
-    /* Crawcin(); commented out temporarily */
+
     while (quit != 1) {
         /* If Input Pending = Update Model Change REQUESTS */
         if (has_input()) {
             char key = get_input(); /* store key press as a master key */
-        
+            if (key == 'q') {
+                quit = 1;
+            }
             /* TETROMINO: MOVEMENT + ROTATE + SOFT DROP (4 KEYS) */
             if (key == 0) {
 
