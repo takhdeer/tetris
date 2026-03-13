@@ -44,12 +44,15 @@ int main() {
     UINT32 timeElapsed;
     UINT8 quit = 0; /* important: quit is set to FALSE */
     Model game_model;
+    char key;
+    Tetromino temp_piece;
+    Tetromino released_piece;
 
     UINT32 *base = (UINT32 *)Physbase(); /* HM added entire line */
     clear_screen((UINT8 *) base);
 
     /* INITIALIZE GAME MODEL (Tetris State: START!) */
-    init_model(&game_model); /* HM: added & */
+    init_model(&game_model);
     
     init_tetromino(&game_model.piece, TETROMINO_I, 3);
     init_next_box(&game_model.nbox, TETROMINO_S);
@@ -70,11 +73,10 @@ int main() {
     timeThen = get_time();
 
     /* MAIN TETRIS GAME LOOP */
-    /* Crawcin(); commented out temporarily */
     while (quit != 1) {
         /* If Input Pending = Update Model Change REQUESTS */
         if (has_input()) {
-            char key = get_input(); /* store key press as a master key */
+            key = get_input(); /* store key press as a master key */
         
             /* TETROMINO: MOVEMENT + ROTATE + SOFT DROP (4 KEYS) */
             if (key == 0) {
@@ -133,12 +135,12 @@ int main() {
             }
 
             if (game_model.request_rotate) {
-                Tetromino temp = game_model.piece;
-                rotate_tetromino_cw(&temp);
+                temp_piece = game_model.piece;
+                rotate_tetromino_cw(&temp_piece);
 
-                if (!check_collision(&game_model.Matrix, &temp, temp.col, temp.row)) 
+                if (!check_collision(&game_model.Matrix, &temp_piece, temp_piece.col, temp_piece.row)) 
                 {
-                    game_model.piece = temp;
+                    game_model.piece = temp_piece;
                 }
                 game_model.request_rotate = 0;  /* Clear request */
             }
@@ -151,9 +153,23 @@ int main() {
                 game_model.request_soft_drop = 0;  /* Clear request */
             }
 
+            temp_piece = game_model.piece;
+
             if (game_model.request_hold) {
-                /* TODO: implement hold logic */
                 game_model.request_hold = 0; /* Clear request*/
+
+                /* check if holdbox is already full */
+                if (hold_box_contains(&game_model.hbox)) {
+                    released_piece = release_tetromino(&game_model.hbox);     /* release held tetromino first */
+                    hold_tetromino(&game_model.hbox, &temp_piece);
+                    game_model.piece = released_piece;                                  /* current game model piece is the just released piece */
+                }
+
+                /* not full, hold the 1st piece */
+                else {
+                    hold_tetromino(&game_model.hbox, &temp_piece);
+                    /* game_model.piece = SPAWN IN A NEW PIECE since the current piece just got held */
+                }
             }
 
             /* Trigger synchronous events based on timeElapsed */
