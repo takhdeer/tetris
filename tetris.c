@@ -21,45 +21,28 @@ const char RIGHT_ARROW = 0x4D;       /* move right */
 const char UP_ARROW = 0x48;          /* rotate */
 const char DOWN_ARROW = 0x50;        /* soft drop */
 
-/* ====== HELPER FUNCTIONS ====== */
-
-/* Get time function */
-UINT32 get_time() {
-    long *timer = (long *)0x462;
-    UINT32 timeNow;
-    long old_ssp;
-
-    old_ssp = Super(0);
-    timeNow = *timer;
-    Super(old_ssp);
-
-    return timeNow;
-}
-
 /* ====== MAIN TETRIS GAME ====== */
 
 int main() {
     UINT32 timeThen;
     UINT32 timeNow;
     UINT32 timeElapsed;
-    UINT8 quit = 0; /* important: quit is set to FALSE */
+    UINT8 quit = 0;         /* important: quit is set to FALSE */
     Model game_model;
     Tetromino temp_piece;
     Tetromino released_piece;
+    char key;
+    char scan;
 
-    UINT32 *base = (UINT32 *)Physbase(); /* HM added entire line */
+    UINT32 *base = (UINT32 *)Physbase();
     clear_screen((UINT8 *) base);
 
     /* INITIALIZE GAME MODEL (Tetris State: START!) */
     init_model(&game_model);
-    
-    init_tetromino(&game_model.piece, TETROMINO_I, 3);
-    init_next_box(&game_model.nbox, TETROMINO_S);
+        
+        /* INITIALIZE Next + Hold Boxes */
+    init_next_box(&game_model.nbox, peek_bag(&game_model));
     init_hold_box(&game_model.hbox);
-    game_model.piece.row = 2;
-    game_model.game_state.score = 1200;
-    game_model.game_state.level = 3;
-    game_model.game_state.lines_cleared = 15;
 
     /* RENDER GAME MODEL everything to screen (Render State: FIRST FRAME) */
     render_matrix(base, &game_model.Matrix);
@@ -75,7 +58,7 @@ int main() {
     while (quit != 1) {
         /* If Input Pending = Update Model Change REQUESTS */
         if (has_input()) {
-            char key = get_input(); /* store key press as a master key */
+            key = get_input(); /* store key press as a master key */
             printf("got Key: %d\n", (int) key);
 
             if (key == 'q') {
@@ -85,7 +68,8 @@ int main() {
         
             /* TETROMINO: MOVEMENT + ROTATE + SOFT DROP (4 KEYS) */
             else if (key == 0) {
-                char scan = get_scan_code();  /* update key with 2nd byte for correct comparison with arrow scan codes */
+                scan = get_scan_code();  /* update key with 2nd byte for correct comparison with arrow scan codes */
+                printf("scan: %d\n", (int) scan); 
 
                 if (scan == LEFT_ARROW) {
                     game_model.request_move_left = 1;
@@ -123,6 +107,9 @@ int main() {
 
             /* Process asynchronous requests */
             if (game_model.request_move_left) {
+                printf("processing left\n");
+                printf("col: %d row: %d\n", game_model.piece.col, game_model.piece.row);
+
                 if (!check_collision(&game_model.Matrix, &game_model.piece, game_model.piece.col - 1, game_model.piece.row)) 
                 {
                     move_tetromino_left(&game_model.piece);
@@ -131,6 +118,7 @@ int main() {
             }
 
             if (game_model.request_move_right) {
+                printf("processing right\n");
                 if (!check_collision(&game_model.Matrix, &game_model.piece, game_model.piece.col + 1, game_model.piece.row)) 
                 {
                     move_tetromino_right(&game_model.piece);
@@ -178,7 +166,11 @@ int main() {
 
             /* Trigger synchronous events based on timeElapsed */
             handle_tick(&game_model);
-            update_state(&game_model.game_state, &game_model.game_state.lines_cleared);
+            /* update_state(&game_model.game_state, &game_model.game_state.lines_cleared); */
+
+            if (check_game_over(&game_model.game_state)) {
+                quit = 1;
+            }
 
             /* Render model */
             clear_screen((UINT8 *)base);
