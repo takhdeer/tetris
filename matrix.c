@@ -28,8 +28,7 @@ void output_matrix(Matrix *gameGrid) {
     }
 }
 
-UINT16 clear_full_lines(Matrix *gameGrid) {
-    UINT16 lines_cleared = 0;
+UINT16 clear_full_lines(Matrix *gameGrid,UINT16 lines_cleared) {
     UINT16 filled_cell_count = 0;
     int r, c;
 
@@ -93,6 +92,10 @@ void lock_piece(Matrix *board, const Tetromino *piece) {
             }
             board_row = pRow + piece->row;
             board_col = pCol + piece->col;
+
+            if (board_row < 0 || board_row >= MATRIX_ROWS) continue;
+            if (board_col < 0 || board_col >= MATRIX_COLS) continue;
+            
             board->cell[board_row][board_col] = 1;
         }
     }

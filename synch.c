@@ -45,5 +45,11 @@ void handle_tick(Model *model) {
     }
     else {
         lock_piece(&model->Matrix, &model->piece);
+
+        model->game_state.lines_cleared = clear_full_lines(&model->Matrix,
+            model->game_state.lines_cleared,
+        );
+
+        /* TODO: spawn next piece here*/
     }
 }

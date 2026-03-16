@@ -44,7 +44,6 @@ int main() {
     UINT32 timeElapsed;
     UINT8 quit = 0; /* important: quit is set to FALSE */
     Model game_model;
-    char key;
     Tetromino temp_piece;
     Tetromino released_piece;
 
@@ -76,26 +75,31 @@ int main() {
     while (quit != 1) {
         /* If Input Pending = Update Model Change REQUESTS */
         if (has_input()) {
-            key = get_input(); /* store key press as a master key */
+            char key = get_input(); /* store key press as a master key */
+            printf("got Key: %d\n", (int) key);
+
+            if (key == 'q') {
+                quit = 1;
+                printf("quit set to 1\n");
+            }
         
             /* TETROMINO: MOVEMENT + ROTATE + SOFT DROP (4 KEYS) */
-            if (key == 0) {
+            else if (key == 0) {
+                char scan = get_scan_code();  /* update key with 2nd byte for correct comparison with arrow scan codes */
 
-                key = get_input();  /* update key with 2nd byte for correct comparison with arrow scan codes */
-
-                if (key == LEFT_ARROW) {
+                if (scan == LEFT_ARROW) {
                     game_model.request_move_left = 1;
                 }
 
-                else if (key == RIGHT_ARROW) {
+                else if (scan == RIGHT_ARROW) {
                     game_model.request_move_right = 1;
                 }
 
-                else if (key == UP_ARROW) {
+                else if (scan == UP_ARROW) {
                     game_model.request_rotate = 1;
                 }
 
-                else if (key == DOWN_ARROW) {
+                else if (scan == DOWN_ARROW) {
                     game_model.request_soft_drop = 1;
                 }
             }
@@ -174,6 +178,7 @@ int main() {
 
             /* Trigger synchronous events based on timeElapsed */
             handle_tick(&game_model);
+            update_state(&game_model.game_state, &game_model.game_state.lines_cleared);
 
             /* Render model */
             clear_screen((UINT8 *)base);
@@ -187,6 +192,6 @@ int main() {
             timeThen = timeNow;
         }
     }
-
+    printf("Game Over\n");
     return 0;
 }

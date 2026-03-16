@@ -27,4 +27,6 @@ int has_input();
 */
 char get_input();
 
+char get_scan_code();
+
 #endif

@@ -46,7 +46,7 @@ void output_matrix(Matrix *gameGrid);
  OUTPUT: number of lines cleared
 
 */
-UINT16 clear_full_lines(Matrix *gameGrid);
+UINT16 clear_full_lines(Matrix *gameGrid,UINT16 lines_cleared);
 
 /*----- Function: drop_rows_down -----
 
