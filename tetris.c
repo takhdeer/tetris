@@ -16,10 +16,46 @@
 #include "matrix.h"
 
 /* ====== REQUIRED CONSTANTS ====== */
+#define CELL_SIZE 16
+
+#define NEXT_BOX_ROW 50
+#define NEXT_BOX_COL 500
+#define NEXT_BOX_SIZE 80
+
+#define HOLD_BOX_ROW 320
+#define HOLD_BOX_COL 500
+#define HOLD_BOX_SIZE 64
+
 const char LEFT_ARROW = 0x4B;        /* move left */
 const char RIGHT_ARROW = 0x4D;       /* move right */
 const char UP_ARROW = 0x48;          /* rotate */
 const char DOWN_ARROW = 0x50;        /* soft drop */
+
+/* ===== DOUBLE BUFFERING SETUP =====*/
+UINT8 buffer_space[32256]; /* 32000 + 256 for alignment*/
+
+/* ====== HELPER FUNCTIONS ====== */
+
+/* Get time function */
+UINT32 get_time() {
+    long *timer = (long *)0x462;
+    UINT32 timeNow;
+    long old_ssp;
+
+    old_ssp = Super(0);
+    timeNow = *timer;
+    Super(old_ssp);
+
+    return timeNow;
+}
+
+/* Wait for vertical blank function */
+void wait_vbl() {
+    UINT32 old_time = get_time();
+    while (get_time() == old_time) {
+        /* Busy wait until timer increment (next VBL) */
+    }
+}
 
 /* ====== MAIN TETRIS GAME ====== */
 
@@ -29,13 +65,47 @@ int main() {
     UINT32 timeElapsed;
     UINT8 quit = 0;         /* important: quit is set to FALSE */
     Model game_model;
+    char key;
     Tetromino temp_piece;
     Tetromino released_piece;
-    char key;
-    char scan;
 
-    UINT32 *base = (UINT32 *)Physbase();
-    clear_screen((UINT8 *) base);
+    int gravity_threshold;
+
+    int pr, pc;
+    UINT16 cell_row, cell_col;
+    int old_lines;
+
+    int center_x;
+    int center_y;
+    int i;
+
+    /* Track what was rendered to each buffer */
+    Tetromino last_piece_buf1;
+    Tetromino last_piece_buf2;
+    int which_buffer; /* 0 = rendering to buffer1, 1 = rendering to buffer2*/
+    int first_render;
+
+    /* Double buffering setup */
+    UINT32 *buffer1;
+    UINT32 *buffer2;
+    UINT32 *back_buffer;
+    UINT32 *front_buffer;
+    UINT32 *original_screen;
+    UINT32 *temp_buffer;
+
+    /* Get original fram buffer */
+    original_screen = (UINT32 *)Physbase();
+
+    /* Align second buffer to 256-byte boundary */
+    buffer1 = original_screen;
+    buffer2 = (UINT32 *)(((UINT32)buffer_space + 255) & 0xFFFFFF00);
+
+    front_buffer = buffer1;
+    back_buffer = buffer2;
+    
+    /* Clearing both buffers */
+    clear_screen(buffer1);
+    clear_screen(buffer2);
 
     /* INITIALIZE GAME MODEL (Tetris State: START!) */
     init_model(&game_model);
@@ -45,12 +115,27 @@ int main() {
     init_hold_box(&game_model.hbox);
 
     /* RENDER GAME MODEL everything to screen (Render State: FIRST FRAME) */
-    render_matrix(base, &game_model.Matrix);
-    render_next_box((UINT32 *) base, &game_model.nbox);
-    render_hold_box(base, &game_model.hbox);
-    render_piece(&game_model.piece, base);
-    render_score(&game_model.game_state, (UINT8 *)base);
-    render_level(&game_model.game_state, (UINT8 *)base);
+    render_matrix(back_buffer, &game_model.Matrix);
+    render_next_box((UINT32 *) back_buffer, &game_model.nbox);
+    render_hold_box(back_buffer, &game_model.hbox);
+    render_piece(&game_model.piece, back_buffer);
+    render_score(&game_model.game_state, (UINT8 *)back_buffer);
+    render_level(&game_model.game_state, (UINT8 *)back_buffer);
+
+    /* Display first frame */
+    Setscreen(back_buffer, back_buffer, -1);
+    wait_vbl();
+
+    /* Swap buffers */
+    temp_buffer = front_buffer;
+    front_buffer = back_buffer;
+    back_buffer = temp_buffer;
+
+    /* Initialize buffer tracking */
+    which_buffer = 1;
+    last_piece_buf1 = game_model.piece;
+    last_piece_buf2 = game_model.piece;
+    first_render = 1;
 
     timeThen = get_time();
     
@@ -59,17 +144,9 @@ int main() {
         /* If Input Pending = Update Model Change REQUESTS */
         if (has_input()) {
             key = get_input(); /* store key press as a master key */
-            printf("got Key: %d\n", (int) key);
 
-            if (key == 'q') {
-                quit = 1;
-                printf("quit set to 1\n");
-            }
-        
-            /* TETROMINO: MOVEMENT + ROTATE + SOFT DROP (4 KEYS) */
-            else if (key == 0) {
-                scan = get_scan_code();  /* update key with 2nd byte for correct comparison with arrow scan codes */
-                printf("scan: %d\n", (int) scan); 
+            if (key == 0) {
+                char scan = get_scan_code();  /* update key with 2nd byte for correct comparison with arrow scan codes */
 
                 if (scan == LEFT_ARROW) {
                     game_model.request_move_left = 1;
@@ -93,6 +170,11 @@ int main() {
                 if (key == 'h') {
                     game_model.request_hold = 1;
                 }
+
+                else if(key == ' ') {
+                    game_model.request_hard_drop = 1;
+                }
+
                 else if (key == 'q') {
                     quit = 1;
                 }
@@ -104,86 +186,199 @@ int main() {
         timeElapsed = timeNow - timeThen;
 
         if (timeElapsed > 0) {
+    /* Get the last piece that was rendered to THIS buffer */
+    Tetromino old_piece;
+    if (first_render) {
+        old_piece = game_model.piece;
+        first_render = 0;
+    } else {
+        old_piece = (which_buffer == 0) ? last_piece_buf1 : last_piece_buf2;
+    }
 
-            /* Process asynchronous requests */
-            if (game_model.request_move_left) {
-                printf("processing left\n");
-                printf("col: %d row: %d\n", game_model.piece.col, game_model.piece.row);
+    /* Process asynchronous requests */
+    if (game_model.request_move_left) {
+        if (!check_collision(&game_model.Matrix, &game_model.piece, 
+                            game_model.piece.col - 1, game_model.piece.row)) {
+            move_tetromino_left(&game_model.piece);
+        }
+        game_model.request_move_left = 0;
+    }
 
-                if (!check_collision(&game_model.Matrix, &game_model.piece, game_model.piece.col - 1, game_model.piece.row)) 
-                {
-                    move_tetromino_left(&game_model.piece);
-                }
-                game_model.request_move_left = 0;  /* Clear request */
-            }
+    if (game_model.request_move_right) {
+        if (!check_collision(&game_model.Matrix, &game_model.piece, 
+                            game_model.piece.col + 1, game_model.piece.row)) {
+            move_tetromino_right(&game_model.piece);
+        }
+        game_model.request_move_right = 0;
+    }
 
-            if (game_model.request_move_right) {
-                printf("processing right\n");
-                if (!check_collision(&game_model.Matrix, &game_model.piece, game_model.piece.col + 1, game_model.piece.row)) 
-                {
-                    move_tetromino_right(&game_model.piece);
-                }
-                game_model.request_move_right = 0;  /* Clear request */
-            }
+    if (game_model.request_rotate) {
+        temp_piece = game_model.piece;
+        rotate_tetromino_cw(&temp_piece);
 
-            if (game_model.request_rotate) {
-                temp_piece = game_model.piece;
-                rotate_tetromino_cw(&temp_piece);
+        if (!check_collision(&game_model.Matrix, &temp_piece, temp_piece.col, temp_piece.row)) {
+            game_model.piece = temp_piece;
+        }
+        game_model.request_rotate = 0;
+    }
 
-                if (!check_collision(&game_model.Matrix, &temp_piece, temp_piece.col, temp_piece.row)) 
-                {
-                    game_model.piece = temp_piece;
-                }
-                game_model.request_rotate = 0;  /* Clear request */
-            }
+    if (game_model.request_soft_drop) {
+        if (can_move_down(&game_model)) {
+            move_tetromino_down(&game_model.piece);
+        }
+        game_model.request_soft_drop = 0;
+    }
 
-            if (game_model.request_soft_drop) {
-                if (can_move_down(&game_model)) 
-                {
-                    move_tetromino_down(&game_model.piece);
-                }
-                game_model.request_soft_drop = 0;  /* Clear request */
-            }
+    temp_piece = game_model.piece;
 
-            temp_piece = game_model.piece;
+    if (game_model.request_hold) {
+        game_model.request_hold = 0;
 
-            if (game_model.request_hold) {
-                game_model.request_hold = 0; /* Clear request*/
+        if (hold_box_contains(&game_model.hbox)) {
+            released_piece = release_tetromino(&game_model.hbox);
+            hold_tetromino(&game_model.hbox, &temp_piece);
+            game_model.piece = released_piece;
+        }
+        else {
+            hold_tetromino(&game_model.hbox, &temp_piece);
+            
+            init_tetromino(&game_model.piece, next_piece_from_bag(&game_model), 3);
+            init_next_box(&game_model.nbox, peek_bag(&game_model));
+            game_model.redraw_next_box = 1;
+        }
+        game_model.redraw_hold_box = 1;
+    }
 
-                /* check if holdbox is already full */
-                if (hold_box_contains(&game_model.hbox)) {
-                    released_piece = release_tetromino(&game_model.hbox);     /* release held tetromino first */
-                    hold_tetromino(&game_model.hbox, &temp_piece);
-                    game_model.piece = released_piece;                                  /* current game model piece is the just released piece */
-                }
+    if (game_model.request_hard_drop) {
+        while (can_move_down(&game_model)) {
+            move_tetromino_down(&game_model.piece);
+        }
 
-                /* not full, hold the 1st piece */
-                else {
-                    hold_tetromino(&game_model.hbox, &temp_piece);
-                    /* game_model.piece = SPAWN IN A NEW PIECE since the current piece just got held */
-                }
-            }
+        lock_piece(&game_model.Matrix, &game_model.piece);
+        game_model.redraw_matrix = 1;
 
-            /* Trigger synchronous events based on timeElapsed */
+        old_lines = game_model.game_state.lines_cleared;
+        game_model.game_state.lines_cleared = clear_full_lines(&game_model.Matrix, 
+            game_model.game_state.lines_cleared);
+
+        if (game_model.game_state.lines_cleared > old_lines) {
+            game_model.redraw_score = 1;
+        }
+
+        init_tetromino(&game_model.piece, next_piece_from_bag(&game_model), 3);
+        init_next_box(&game_model.nbox, peek_bag(&game_model));
+        game_model.redraw_next_box = 1;
+
+        game_model.request_hard_drop = 0;
+    }
+    else {
+        game_model.gravity_counter++;
+
+        gravity_threshold = 50 - (game_model.game_state.level * 5);
+        if (gravity_threshold < 5) {
+            gravity_threshold = 5;
+        }
+
+        if (game_model.gravity_counter >= gravity_threshold) {
             handle_tick(&game_model);
-            /* update_state(&game_model.game_state, &game_model.game_state.lines_cleared); */
-
-            if (check_game_over(&game_model.game_state)) {
-                quit = 1;
-            }
-
-            /* Render model */
-            clear_screen((UINT8 *)base);
-            render_matrix(base, &game_model.Matrix);
-            render_next_box((UINT32 *) base, &game_model.nbox);
-            render_hold_box(base, &game_model.hbox);
-            render_piece(&game_model.piece, base);
-            render_score(&game_model.game_state, (UINT8 *)base);
-            render_level(&game_model.game_state, (UINT8 *)base);
-
-            timeThen = timeNow;
+            game_model.gravity_counter = 0;
         }
     }
+
+    /* Render static elements to both buffers if dirty */
+    if (game_model.redraw_matrix) {
+        render_matrix(back_buffer, &game_model.Matrix);
+        render_matrix(front_buffer, &game_model.Matrix);
+        game_model.redraw_matrix = 0;
+    }
+
+    if (game_model.redraw_next_box) {
+        clear_region(back_buffer, NEXT_BOX_ROW, NEXT_BOX_COL, NEXT_BOX_SIZE, NEXT_BOX_SIZE);
+        clear_region(front_buffer, NEXT_BOX_ROW, NEXT_BOX_COL, NEXT_BOX_SIZE, NEXT_BOX_SIZE);
+
+        render_next_box(back_buffer, &game_model.nbox);
+        render_next_box(front_buffer, &game_model.nbox);
+        game_model.redraw_next_box = 0;
+    }
+
+    if (game_model.redraw_hold_box) {
+        clear_region(back_buffer, HOLD_BOX_ROW, HOLD_BOX_COL, HOLD_BOX_SIZE, HOLD_BOX_SIZE);
+        clear_region(front_buffer, HOLD_BOX_ROW, HOLD_BOX_COL, HOLD_BOX_SIZE, HOLD_BOX_SIZE);
+
+        render_hold_box(back_buffer, &game_model.hbox);
+        render_hold_box(front_buffer, &game_model.hbox);
+        game_model.redraw_hold_box = 0;
+    }
+
+    if (game_model.redraw_score) {
+        render_score(&game_model.game_state, (UINT8 *)back_buffer);
+        render_level(&game_model.game_state, (UINT8 *)back_buffer);
+        render_score(&game_model.game_state, (UINT8 *)front_buffer);
+        render_level(&game_model.game_state, (UINT8 *)front_buffer);
+        game_model.redraw_score = 0;
+    }
+
+    /* Clear and redraw matrix region where old piece was */
+    for (pr = 0; pr < 4; pr++) {
+        for (pc = 0; pc < 4; pc++) {
+            if (get_cell(&old_piece, pr, pc) != 0) {  /* ← ADD THIS LINE */
+                int matrix_row = old_piece.row + pr;
+                int matrix_col = old_piece.col + pc;
+                
+                if (matrix_row >= 0 && matrix_row < MATRIX_ROWS &&
+                    matrix_col >= 0 && matrix_col < MATRIX_COLS) {
+                    
+                    cell_row = (UINT16)(matrix_row * CELL_SIZE);
+                    cell_col = (UINT16)(matrix_col * CELL_SIZE);
+                    
+                    clear_region(back_buffer, cell_row, cell_col, 
+                                (UINT16)CELL_SIZE, (UINT16)CELL_SIZE);
+                    
+                    if (game_model.Matrix.cell[matrix_row][matrix_col] == 1) {
+                        plot_rectangle(back_buffer, cell_row, cell_col, CELL_SIZE, CELL_SIZE);
+                        
+                        center_x = cell_col + (CELL_SIZE / 2) - 6;
+                        center_y = cell_row + (CELL_SIZE / 2) - 6;
+
+                        for (i = 0; i < 12; i++) {
+                            plot_horizontal_line(back_buffer, center_y + i, center_x, 12);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+
+    /* Render current piece to back buffer only */
+    render_piece(&game_model.piece, back_buffer);
+
+    /* Page flip */
+    Setscreen(back_buffer, back_buffer, -1);
+    wait_vbl();
+
+    /* Save what we just rendered to THIS buffer */
+    if (which_buffer == 0) {
+        last_piece_buf1 = game_model.piece;
+    } else {
+        last_piece_buf2 = game_model.piece;
+    }
+
+    /* Swap buffers */
+    temp_buffer = front_buffer;
+    front_buffer = back_buffer;
+    back_buffer = temp_buffer;
+
+    /* Toggle which buffer we'll render to next */
+    which_buffer = 1 - which_buffer;
+
+    timeThen = timeNow;
+    }
+}
+    
     printf("Game Over\n");
+
+    Setscreen(original_screen, original_screen, -1);
+    
     return 0;
 }

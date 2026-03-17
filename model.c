@@ -32,6 +32,17 @@ void init_model(Model *model) {
     model->request_rotate = 0;
     model->request_soft_drop = 0;
     model->request_hold = 0;
+
+    model->request_hard_drop = 0;
+
+    /* Initialize gravity counter */
+    model->gravity_counter = 0;
+
+    /* Initialize redraw flags */
+    model->redraw_matrix = 1;
+    model->redraw_next_box = 1;
+    model->redraw_hold_box = 1;
+    model->redraw_score = 1;
 }
 
 UINT32 get_time() {
@@ -94,4 +105,5 @@ int next_piece_from_bag(Model *model) {
 int peek_bag(Model *model) {
     return model->bag[model->bag_index];
 }
+
 

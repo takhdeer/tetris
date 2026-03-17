@@ -7,6 +7,7 @@
 #include "matrix.h"
 #include "tetrom.h"
 #include "types.h"
+#include "next_box.h"
 
 /*
     Purpose: Determines if a tetromino collides with board boundaries

@@ -40,16 +40,31 @@ UINT16 can_move_down(Model *model) {
 }
 
 void handle_tick(Model *model) {
+    int old_lines;
+
     if (can_move_down(model)) {
         move_tetromino_down(&model->piece);
     }
     else {
+        /* Lock piece to matrix */
         lock_piece(&model->Matrix, &model->piece);
+        model->redraw_matrix = 1;
 
-        model->game_state.lines_cleared = clear_full_lines(&model->Matrix,
-            model->game_state.lines_cleared,
-        );
+        /* Clearing lines */
+        old_lines = model->game_state.lines_cleared;
+        model->game_state.lines_cleared = clear_full_lines(&model->Matrix, model->game_state.lines_cleared);
 
-        /* TODO: spawn next piece here*/
+        /*If lines were cleared, matrix + score change*/
+        if (model->game_state.lines_cleared > old_lines) {
+            model->redraw_matrix = 1;
+            model->redraw_score = 1;
+        }
+
+        /* Spawn new piece from bag */
+        init_tetromino(&model->piece, next_piece_from_bag(model), 3);
+        init_next_box(&model->nbox, peek_bag(model));
+        model->redraw_next_box = 1;
+
+        /* TODO: Check for game over */
     }
 }

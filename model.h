@@ -28,6 +28,15 @@ typedef struct {
     int bag[7];
     int bag_index;
 
+    int request_hard_drop;
+
+    int gravity_counter;
+
+    /* redraw flags (tracking what needs to be redrawn) */
+    int redraw_matrix;
+    int redraw_next_box;
+    int redraw_hold_box;
+    int redraw_score;
 } Model;
 
 extern Model initial_model;
