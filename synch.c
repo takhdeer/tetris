@@ -65,6 +65,9 @@ void handle_tick(Model *model) {
         init_next_box(&model->nbox, peek_bag(model));
         model->redraw_next_box = 1;
 
-        /* TODO: Check for game over */
+        /* Check if the game should end*/
+        if(check_collision(&model->Matrix, &model->piece, &model->piece.row, &model->piece.col)) {
+            model->game_state.is_game_over = 1;
+        }
     }
 }

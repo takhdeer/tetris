@@ -56,7 +56,6 @@ void wait_vbl() {
         /* Busy wait until timer increment (next VBL) */
     }
 }
-
 /* ====== MAIN TETRIS GAME ====== */
 
 int main() {
@@ -123,7 +122,7 @@ int main() {
     render_level(&game_model.game_state, (UINT8 *)back_buffer);
 
     /* Display first frame */
-    Setscreen(back_buffer, back_buffer, -1);
+    Setscreen(-1, back_buffer, -1);
     wait_vbl();
 
     /* Swap buffers */
@@ -262,6 +261,7 @@ int main() {
             game_model.game_state.lines_cleared);
 
         if (game_model.game_state.lines_cleared > old_lines) {
+            game_model.redraw_matrix = 1;
             game_model.redraw_score = 1;
         }
 
@@ -287,6 +287,24 @@ int main() {
 
     /* Render static elements to both buffers if dirty */
     if (game_model.redraw_matrix) {
+        UINT32 *back_ptr;
+        UINT32 *front_ptr;  
+        int row, word;
+        int bytes_per_row = 80;           /* atari ST mono = 640px / 8 = 80 bytes per scanline */
+        int matrix_pixel_rows = MATRIX_ROWS * CELL_SIZE;
+        int words_per_matrix_row = (MATRIX_COLS * CELL_SIZE) / 32; /* 32 bits per UINT32 */
+
+        /*since memset isn't available on atari built our own function*/
+        for (row = 0; row < matrix_pixel_rows; row++) {
+             back_ptr  = (UINT32 *)((UINT8 *)back_buffer  + (row * bytes_per_row));
+            front_ptr = (UINT32 *)((UINT8 *)front_buffer + (row * bytes_per_row));
+
+            for (word = 0; word < words_per_matrix_row; word++) {
+                back_ptr[word]  = 0;
+                front_ptr[word] = 0;
+            }
+        }
+
         render_matrix(back_buffer, &game_model.Matrix);
         render_matrix(front_buffer, &game_model.Matrix);
         game_model.redraw_matrix = 0;
