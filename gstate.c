@@ -36,10 +36,3 @@ void update_state(GameState *state, UINT16 lines_just_cleared) {
         state->level++;
     }
 }
-
-UINT8 check_game_over(const GameState *state) {
-    if (state->is_game_over == 1) {
-        return 1;
-    }
-    return 0;
-}

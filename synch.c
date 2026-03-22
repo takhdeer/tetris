@@ -1,6 +1,7 @@
 /* synch.c */
 
 #include "synch.h"
+#include <stdio.h>
 
 UINT16 check_collision(const Matrix *board, const Tetromino *piece, int offset_x, int offset_y) {
     UINT16 piece_row;
@@ -60,13 +61,17 @@ void handle_tick(Model *model) {
             model->redraw_score = 1;
         }
 
+        if (check_game_over(model) == 1) {
+            model->game_state.is_game_over = 1;
+        }
+
         /* Spawn new piece from bag */
         init_tetromino(&model->piece, next_piece_from_bag(model), 3);
         init_next_box(&model->nbox, peek_bag(model));
         model->redraw_next_box = 1;
 
         /* Check if the game should end*/
-        if(check_collision(&model->Matrix, &model->piece, &model->piece.row, &model->piece.col)) {
+        if(check_collision(&model->Matrix, &model->piece, model->piece.col, model->piece.row)) {
             model->game_state.is_game_over = 1;
         }
     }

@@ -45,6 +45,16 @@ void init_model(Model *model) {
     model->redraw_score = 1;
 }
 
+UINT8 check_game_over (Model *model) {
+    int c;
+    for (c = 0; c < MATRIX_COLS; c++) {
+        if (model->Matrix.cell[0][c] == 1 ||
+            model->Matrix.cell[1][c] == 1) 
+        return 1; 
+    }
+    return 0;
+}
+
 UINT32 get_time() {
     long *timer = (long *)0x462;
     UINT32 timeNow;

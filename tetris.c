@@ -269,6 +269,10 @@ int main() {
         init_next_box(&game_model.nbox, peek_bag(&game_model));
         game_model.redraw_next_box = 1;
 
+        if (game_model.game_state.is_game_over) {
+            quit = 1;
+        }
+
         game_model.request_hard_drop = 0;
     }
     else {
@@ -282,6 +286,10 @@ int main() {
         if (game_model.gravity_counter >= gravity_threshold) {
             handle_tick(&game_model);
             game_model.gravity_counter = 0;
+
+            if (game_model.game_state.is_game_over) {
+                quit = 1;
+            }
         }
     }
 
