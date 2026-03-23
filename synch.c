@@ -62,6 +62,8 @@ void handle_tick(Model *model) {
 
         /* Spawn new piece from bag */
         init_tetromino(&model->piece, next_piece_from_bag(model), 3);
+        model->hold_used = 0;
+
         init_next_box(&model->nbox, peek_bag(model));
         model->redraw_next_box = 1;
 

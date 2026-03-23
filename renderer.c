@@ -9,7 +9,7 @@
 
 #define HOLD_BOX_ROW 320
 #define HOLD_BOX_COL 500
-#define HOLD_BOX_SIZE (4 * CELL_SIZE)
+#define HOLD_BOX_SIZE 80
 
 #define SCORE_X 200   /* score x position */
 #define SCORE_Y 10    /* score y position */
@@ -72,8 +72,9 @@ void render_hold_box(UINT32 *base, const HoldBox *heldbox) {
     if (heldbox->contains == 1) {
         /* extract held piece and its coordinates */
         temp_piece = heldbox->piece_held;
-        temp_piece.row = HOLD_BOX_ROW / CELL_SIZE;
-        temp_piece.col = HOLD_BOX_COL / CELL_SIZE;
+        temp_piece.row = (HOLD_BOX_ROW + CELL_SIZE) / CELL_SIZE;
+        temp_piece.col = (HOLD_BOX_COL + CELL_SIZE) / CELL_SIZE;
+        temp_piece.rotation = 0; /* SET IT TO DEFAULT ORIENTATION */
 
         /* plot to FrameBuffer */
         plot_rectangle(base, HOLD_BOX_ROW, HOLD_BOX_COL, HOLD_BOX_SIZE, HOLD_BOX_SIZE);

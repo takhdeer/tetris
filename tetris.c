@@ -24,7 +24,7 @@
 
 #define HOLD_BOX_ROW 320
 #define HOLD_BOX_COL 500
-#define HOLD_BOX_SIZE 64
+#define HOLD_BOX_SIZE 80
 
 const char LEFT_ARROW = 0x4B;        /* move left */
 const char RIGHT_ARROW = 0x4D;       /* move right */
@@ -37,6 +37,7 @@ UINT8 buffer_space[32256]; /* 32000 + 256 for alignment*/
 /* ====== HELPER FUNCTIONS ====== */
 
 /* Get time function */
+/*
 UINT32 get_time() {
     long *timer = (long *)0x462;
     UINT32 timeNow;
@@ -48,6 +49,7 @@ UINT32 get_time() {
 
     return timeNow;
 }
+    */
 
 /* Wait for vertical blank function */
 void wait_vbl() {
@@ -232,21 +234,28 @@ int main() {
     temp_piece = game_model.piece;
 
     if (game_model.request_hold) {
+    
         game_model.request_hold = 0;
 
-        if (hold_box_contains(&game_model.hbox)) {
-            released_piece = release_tetromino(&game_model.hbox);
-            hold_tetromino(&game_model.hbox, &temp_piece);
-            game_model.piece = released_piece;
+        /* TO ENSURE NO INFINITE HOLDING */
+        if (!game_model.hold_used) {
+
+            if (hold_box_contains(&game_model.hbox)) {
+                released_piece = release_tetromino(&game_model.hbox);
+                hold_tetromino(&game_model.hbox, &temp_piece);
+                game_model.piece = released_piece;
+            }
+            else {
+                hold_tetromino(&game_model.hbox, &temp_piece);
+                
+                init_tetromino(&game_model.piece, next_piece_from_bag(&game_model), 3);
+                game_model.hold_used = 0;
+                init_next_box(&game_model.nbox, peek_bag(&game_model));
+                game_model.redraw_next_box = 1;
+            }
+            game_model.redraw_hold_box = 1;
+            game_model.hold_used = 1;
         }
-        else {
-            hold_tetromino(&game_model.hbox, &temp_piece);
-            
-            init_tetromino(&game_model.piece, next_piece_from_bag(&game_model), 3);
-            init_next_box(&game_model.nbox, peek_bag(&game_model));
-            game_model.redraw_next_box = 1;
-        }
-        game_model.redraw_hold_box = 1;
     }
 
     if (game_model.request_hard_drop) {
@@ -266,6 +275,7 @@ int main() {
         }
 
         init_tetromino(&game_model.piece, next_piece_from_bag(&game_model), 3);
+        game_model.hold_used = 0;
         init_next_box(&game_model.nbox, peek_bag(&game_model));
         game_model.redraw_next_box = 1;
 
