@@ -14,6 +14,7 @@ void init_model(Model *model) {
     model->game_state.level = 1;
     model->game_state.lines_cleared = 0;
     model->game_state.is_game_over = 0;
+    model->hold_used = 0;
 
     /* Initializing empty board + grab bag */
     create_matrix(&model->Matrix);
