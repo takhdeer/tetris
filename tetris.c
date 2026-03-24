@@ -243,6 +243,12 @@ int main() {
             if (hold_box_contains(&game_model.hbox)) {
                 released_piece = release_tetromino(&game_model.hbox);
                 hold_tetromino(&game_model.hbox, &temp_piece);
+
+                /* RESET released_piece to CENTER of grid */
+                released_piece.row = 0;
+                released_piece.col = 3;
+                released_piece.rotation = 0;
+
                 game_model.piece = released_piece;
             }
             else {
