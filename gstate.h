@@ -33,9 +33,4 @@ UINT16 map_line_base(const UINT16 lines_cleared);
 */
 void update_state(GameState *state, UINT16 lines_cleared);
 
-/*
-    Checks if the game is over by checking the is_game_over field.
-*/
-UINT8 check_game_over(const GameState *state);
-
 #endif

@@ -48,13 +48,25 @@ extern Model initial_model;
 */
 void init_model(Model *model);
 
+/*------ Function: check_game_over ----
+
+PURPOSE: checks if the top 2 rows of the matrix are filled 
+
+INPUT: Game Model
+
+Output: Returns 1 for game is over
+        Returns 2 for game is NOT over
+
+*/
+UINT8 check_game_over (Model *model);
+
 /*----- Function: get_time -----
 
- PURPOSE: quite literally gets the time of the 70 Hz clock at that clock tick
+ PURPOSE: gets the time of the 70 Hz clock at that clock tick
 
- INPUT: nothing
+ INPUT: Game Model
 
- OUTPUT: the time 8)
+ OUTPUT: Clock Time
 
 */
 
