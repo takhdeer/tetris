@@ -15,6 +15,9 @@
 #include "cond.h"
 #define BLOCK_SIZE 16
 
+#define COL_OFFSET 240  /* For centering the matrix + pixels*/
+#define ROW_OFFSET 40
+
 /* === FUNCTION HEADERS === */
 
 /* Aaron's Functions: */

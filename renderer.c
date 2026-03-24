@@ -18,6 +18,9 @@
 #define LINES_X 200
 #define LINES_Y 50
 
+int matrix_width = MATRIX_COLS * CELL_SIZE;
+int matrix_height = MATRIX_ROWS * CELL_SIZE;
+
 void render_next_box(UINT32 *base, const NextBox *box) { 
     Tetromino preview_piece;
     int next_type;
@@ -36,19 +39,17 @@ void render_next_box(UINT32 *base, const NextBox *box) {
 void render_matrix(UINT32 *base, const Matrix *gameGrid) {
     UINT16 pixel_row, pixel_col;
     int r, c, i;
-    int matrix_width = MATRIX_COLS * CELL_SIZE;
-    int matrix_height = MATRIX_ROWS * CELL_SIZE;
     int center_x;
     int center_y;
     int dot_size = 12;
 
     /* Drawing matrix border*/
-    plot_rectangle(base, 0, 0, matrix_height, matrix_width);
+    plot_rectangle(base, ROW_OFFSET - 1, COL_OFFSET - 1, matrix_height, matrix_width);
 
     for (r = 0; r < MATRIX_ROWS; r++) {
         for (c = 0; c < MATRIX_COLS; c++) {
-            pixel_row = r * CELL_SIZE;
-            pixel_col = c * CELL_SIZE;
+            pixel_row = ROW_OFFSET + (r * CELL_SIZE);
+            pixel_col = COL_OFFSET + (c * CELL_SIZE);
             /* cell in Matrix holds a 1 = filled cell */
             if (gameGrid->cell[r][c] == 1) {
                 /* Outlining tetromino */
@@ -103,8 +104,8 @@ void render_piece(const Tetromino *piece, UINT32 *base) {
         for (piece_col = 0; piece_col < 4; piece_col++) {
             /* If cell is part of the piece */
             if (get_cell(piece, piece_row, piece_col) != 0) {
-                screen_x = (piece->col + piece_col) * CELL_SIZE;
-                screen_y = (piece->row + piece_row) * CELL_SIZE;
+                screen_x = COL_OFFSET + (piece->col + piece_col) * CELL_SIZE;
+                screen_y = ROW_OFFSET + (piece->row + piece_row) * CELL_SIZE;
 
                 /* Outlining tetromino */
                 plot_rectangle(base, screen_y, screen_x, CELL_SIZE, CELL_SIZE);
@@ -115,7 +116,7 @@ void render_piece(const Tetromino *piece, UINT32 *base) {
                 for (i = 0 ; i < dot_size ; i++) {
                     plot_horizontal_line(base, center_y + i, center_x, dot_size);
                 }
-
+                /*plot_rectangle(base, ROW_OFFSET, COL_OFFSET, matrix_height, matrix_width);*/ /* Causes too much input delay*/
             }
         }
     }

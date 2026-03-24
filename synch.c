@@ -54,6 +54,8 @@ void handle_tick(Model *model) {
         old_lines = model->game_state.lines_cleared;
         model->game_state.lines_cleared = clear_full_lines(&model->Matrix, model->game_state.lines_cleared);
 
+        update_state(&model->game_state,&model->game_state.lines_cleared);
+
         /*If lines were cleared, matrix + score change*/
         if (model->game_state.lines_cleared > old_lines) {
             model->redraw_matrix = 1;

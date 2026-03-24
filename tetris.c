@@ -271,6 +271,7 @@ int main() {
             game_model.game_state.lines_cleared);
 
         if (game_model.game_state.lines_cleared > old_lines) {
+            update_state(&game_model.game_state,&game_model.game_state.lines_cleared);
             game_model.redraw_score = 1;
         }
 
@@ -292,6 +293,7 @@ int main() {
         if (game_model.gravity_counter >= gravity_threshold) {
             handle_tick(&game_model);
             game_model.gravity_counter = 0;
+            update_state(&game_model.game_state,&game_model.game_state.lines_cleared);
         }
     }
 
@@ -338,8 +340,8 @@ int main() {
                 if (matrix_row >= 0 && matrix_row < MATRIX_ROWS &&
                     matrix_col >= 0 && matrix_col < MATRIX_COLS) {
                     
-                    cell_row = (UINT16)(matrix_row * CELL_SIZE);
-                    cell_col = (UINT16)(matrix_col * CELL_SIZE);
+                    cell_row = (UINT16)(matrix_row * CELL_SIZE) + ROW_OFFSET;
+                    cell_col = (UINT16)(matrix_col * CELL_SIZE) + COL_OFFSET;
                     
                     clear_region(back_buffer, cell_row, cell_col, 
                                 (UINT16)CELL_SIZE, (UINT16)CELL_SIZE);
