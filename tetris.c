@@ -270,6 +270,7 @@ int main() {
             game_model.game_state.lines_cleared);
 
         if (game_model.game_state.lines_cleared > old_lines) {
+            game_model.redraw_matrix = 1;
             update_state(&game_model.game_state,&game_model.game_state.lines_cleared);
             game_model.redraw_score = 1;
         }
@@ -296,14 +297,7 @@ int main() {
         if (game_model.gravity_counter >= gravity_threshold) {
             handle_tick(&game_model);
             game_model.gravity_counter = 0;
-<<<<<<< HEAD
             update_state(&game_model.game_state,&game_model.game_state.lines_cleared);
-=======
-
-            if (game_model.game_state.is_game_over) {
-                quit = 1;
-            }
->>>>>>> takhdeer-branch
         }
     }
 
