@@ -271,7 +271,6 @@ int main() {
 
         if (game_model.game_state.lines_cleared > old_lines) {
             game_model.redraw_matrix = 1;
-            update_state(&game_model.game_state,&game_model.game_state.lines_cleared);
             game_model.redraw_score = 1;
         }
 
@@ -297,7 +296,10 @@ int main() {
         if (game_model.gravity_counter >= gravity_threshold) {
             handle_tick(&game_model);
             game_model.gravity_counter = 0;
-            update_state(&game_model.game_state,&game_model.game_state.lines_cleared);
+
+            if(game_model.game_state.is_game_over == 1) {
+                quit = 1;
+            }
         }
     }
 
@@ -312,8 +314,8 @@ int main() {
 
         /*since memset isn't available on atari built our own function*/
         for (row = 0; row < matrix_pixel_rows; row++) {
-             back_ptr  = (UINT32 *)((UINT8 *)back_buffer  + (row * bytes_per_row));
-            front_ptr = (UINT32 *)((UINT8 *)front_buffer + (row * bytes_per_row));
+             back_ptr  = (UINT32 *)((UINT8 *)back_buffer  + ((row + ROW_OFFSET) * bytes_per_row) + (COL_OFFSET / 8));
+            front_ptr = (UINT32 *)((UINT8 *)front_buffer + ((row + ROW_OFFSET) * bytes_per_row) + (COL_OFFSET / 8));
 
             for (word = 0; word < words_per_matrix_row; word++) {
                 back_ptr[word]  = 0;
