@@ -32,6 +32,8 @@ typedef struct {
 
     int gravity_counter;
 
+    int hold_used;
+
     /* redraw flags (tracking what needs to be redrawn) */
     int redraw_matrix;
     int redraw_next_box;
