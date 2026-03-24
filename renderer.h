@@ -18,6 +18,13 @@
 #define COL_OFFSET 240  /* For centering the matrix + pixels*/
 #define ROW_OFFSET 40
 
+#define SCORE_X 20    /* score x position */
+#define SCORE_Y 150   /* score y position */
+#define LEVEL_X 20
+#define LEVEL_Y 170
+#define LINES_X 20
+#define LINES_Y 190
+
 /* === FUNCTION HEADERS === */
 
 /* Aaron's Functions: */
@@ -71,6 +78,17 @@ void render_hold_box(UINT32 *base, const HoldBox *heldbox);
       Output: None (renders directly to frame buffer)
 */
 void render_piece(const Tetromino *piece, UINT32 *base);
+
+/*
+    Purpose: Render raw values for next and hold box: 
+
+      Input:
+        - board: Pointer to the game board matrix (20x10 grid)
+        - base: Pointer to the frame buffer where rendering occurs
+
+      Output: None (renders directly to frame buffer)
+*/
+void render_raw_piece(const Tetromino *piece, UINT32 *base);
 
 /*
     Helper function designed to convert unsigned int to string

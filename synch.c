@@ -42,6 +42,7 @@ UINT16 can_move_down(Model *model) {
 
 void handle_tick(Model *model) {
     int old_lines;
+    UINT16 lines_this_tick;
 
     if (can_move_down(model)) {
         move_tetromino_down(&model->piece);
@@ -54,7 +55,10 @@ void handle_tick(Model *model) {
         /* Clearing lines */
         old_lines = model->game_state.lines_cleared;
         model->game_state.lines_cleared = clear_full_lines(&model->Matrix, model->game_state.lines_cleared);
-        
+        lines_this_tick = model->game_state.lines_cleared - old_lines;
+        update_state(&model->game_state,lines_this_tick);
+
+
         /*If lines were cleared, matrix + score change*/
         if (model->game_state.lines_cleared > old_lines) {
             model->redraw_matrix = 1;

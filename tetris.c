@@ -75,6 +75,7 @@ int main() {
     int pr, pc;
     UINT16 cell_row, cell_col;
     int old_lines;
+    UINT16 lines_this_drop;
 
     int center_x;
     int center_y;
@@ -265,13 +266,16 @@ int main() {
         lock_piece(&game_model.Matrix, &game_model.piece);
         game_model.redraw_matrix = 1;
 
+
         old_lines = game_model.game_state.lines_cleared;
         game_model.game_state.lines_cleared = clear_full_lines(&game_model.Matrix, 
             game_model.game_state.lines_cleared);
+        lines_this_drop = game_model.game_state.lines_cleared - old_lines;
 
         if (game_model.game_state.lines_cleared > old_lines) {
             game_model.redraw_matrix = 1;
             game_model.redraw_score = 1;
+            update_state(&game_model.game_state, lines_this_drop);
         }
 
         init_tetromino(&game_model.piece, next_piece_from_bag(&game_model), 3);
@@ -347,6 +351,12 @@ int main() {
     }
 
     if (game_model.redraw_score) {
+        /* clear score/level text region on both buffers first */
+        clear_region(back_buffer, SCORE_Y, SCORE_X, 16, 150);
+        clear_region(front_buffer, SCORE_Y, SCORE_X, 16, 150);
+        clear_region(back_buffer, LEVEL_Y, LEVEL_X, 16, 150);
+        clear_region(front_buffer, LEVEL_Y, LEVEL_X, 16, 150);
+
         render_score(&game_model.game_state, (UINT8 *)back_buffer);
         render_level(&game_model.game_state, (UINT8 *)back_buffer);
         render_score(&game_model.game_state, (UINT8 *)front_buffer);

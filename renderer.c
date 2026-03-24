@@ -11,12 +11,6 @@
 #define HOLD_BOX_COL 500
 #define HOLD_BOX_SIZE 80
 
-#define SCORE_X 200   /* score x position */
-#define SCORE_Y 10    /* score y position */
-#define LEVEL_X 200
-#define LEVEL_Y 30
-#define LINES_X 200
-#define LINES_Y 50
 
 int matrix_width = MATRIX_COLS * CELL_SIZE;
 int matrix_height = MATRIX_ROWS * CELL_SIZE;
@@ -31,7 +25,7 @@ void render_next_box(UINT32 *base, const NextBox *box) {
     preview_piece.row = (NEXT_BOX_ROW + 16) / CELL_SIZE;
 
     plot_rectangle(base, NEXT_BOX_ROW, NEXT_BOX_COL, NEXT_BOX_SIZE, NEXT_BOX_SIZE);
-    render_piece(&preview_piece, base);
+    render_raw_piece(&preview_piece, base);
 }
 
 /* =========================================== */
@@ -44,7 +38,7 @@ void render_matrix(UINT32 *base, const Matrix *gameGrid) {
     int dot_size = 12;
 
     /* Drawing matrix border*/
-    plot_rectangle(base, ROW_OFFSET - 1, COL_OFFSET - 1, matrix_height, matrix_width);
+    plot_rectangle(base, ROW_OFFSET - 1, COL_OFFSET - 1, matrix_height + 2, matrix_width + 2);
 
     for (r = 0; r < MATRIX_ROWS; r++) {
         for (c = 0; c < MATRIX_COLS; c++) {
@@ -79,7 +73,7 @@ void render_hold_box(UINT32 *base, const HoldBox *heldbox) {
 
         /* plot to FrameBuffer */
         plot_rectangle(base, HOLD_BOX_ROW, HOLD_BOX_COL, HOLD_BOX_SIZE, HOLD_BOX_SIZE);
-        render_piece(&temp_piece, (UINT32*)base);
+        render_raw_piece(&temp_piece, (UINT32*)base);
     }
     /* Case 2: render an empty HoldBox */
     else {
@@ -117,6 +111,34 @@ void render_piece(const Tetromino *piece, UINT32 *base) {
                     plot_horizontal_line(base, center_y + i, center_x, dot_size);
                 }
                 /*plot_rectangle(base, ROW_OFFSET, COL_OFFSET, matrix_height, matrix_width);*/ /* Causes too much input delay*/
+            }
+        }
+    }
+}
+
+void render_raw_piece(const Tetromino *piece, UINT32 *base) {
+    int piece_row;
+    int piece_col;
+    int screen_x;
+    int screen_y;
+    int center_x;
+    int center_y;
+    int dot_size = 4;
+    int i;
+
+    for (piece_row = 0; piece_row < 4; piece_row++) {
+        for (piece_col = 0; piece_col < 4; piece_col++) {
+            if (get_cell(piece, piece_row, piece_col) != 0) {
+                screen_x = (piece->col + piece_col) * CELL_SIZE;
+                screen_y = (piece->row + piece_row) * CELL_SIZE;
+
+                plot_rectangle(base, screen_y, screen_x, CELL_SIZE, CELL_SIZE);
+
+                center_x = screen_x + (CELL_SIZE / 2) - (dot_size / 2);
+                center_y = screen_y + (CELL_SIZE / 2) - (dot_size / 2);
+                for (i = 0; i < dot_size; i++) {
+                    plot_horizontal_line(base, center_y + i, center_x, dot_size);
+                }
             }
         }
     }

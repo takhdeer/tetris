@@ -28,10 +28,13 @@ UINT16 map_line_base(const UINT16 lines_cleared) {
 }
 
 void update_state(GameState *state, UINT16 lines_just_cleared) {
-    UINT16 base_points = map_line_base(lines_just_cleared);
-    state->score += (base_points) * (state->level + 1);
-    state->lines_cleared += lines_just_cleared;
+    UINT16 base_points;
+    if (lines_just_cleared == 0) return;
+    
+    base_points = map_line_base(lines_just_cleared);
+    state->score += base_points * (state->level + 1);
 
+    /* use total lines_cleared from model, not lines_just_cleared */
     if (state->lines_cleared % 10 == 0) {
         state->level++;
     }
