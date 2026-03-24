@@ -169,7 +169,7 @@ int main() {
 
             /* TETROMINO: HOLD + QUIT (2 KEYS) */
             else {
-                if (key == 'h') {
+                if (key == 'c') {
                     game_model.request_hold = 1;
                 }
 
@@ -376,7 +376,7 @@ int main() {
                     
                     cell_row = (UINT16)(matrix_row * CELL_SIZE) + ROW_OFFSET;
                     cell_col = (UINT16)(matrix_col * CELL_SIZE) + COL_OFFSET;
-                    
+                     
                     clear_region(back_buffer, cell_row, cell_col, 
                                 (UINT16)CELL_SIZE, (UINT16)CELL_SIZE);
                     
