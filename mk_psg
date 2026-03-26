@@ -1,0 +1,17 @@
+CC = cc68x
+CFLAGS = 
+OBJS = tst_psg.o psg.o
+TARGET = tst_psg.prg
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+
+tst_psg.o: tst_psg.c psg.h types.h
+	$(CC) $(CFLAGS) -c tst_psg.c
+
+psg.o: psg.c psg.h types.h
+	$(CC) $(CFLAGS) -c psg.c
+
+clean:
+	del *.o
+	del $(TARGET)

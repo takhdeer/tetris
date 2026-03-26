@@ -15,6 +15,8 @@
 #include "next_box.h"
 #include "matrix.h"
 
+#include "music.h"
+
 /* ====== REQUIRED CONSTANTS ====== */
 #define CELL_SIZE 16
 
@@ -140,6 +142,9 @@ int main() {
     first_render = 1;
 
     timeThen = get_time();
+
+    /* Start tetris music */
+    start_music();
     
     /* MAIN TETRIS GAME LOOP */
     while (quit != 1) {
@@ -424,10 +429,13 @@ int main() {
     /* Toggle which buffer we'll render to next */
     which_buffer = 1 - which_buffer;
 
+    /* Update music */
+    update_music(timeElapsed);
+
     timeThen = timeNow;
     }
 }
-    
+    stop_music();
     printf("Game Over\n");
 
     Setscreen(original_screen, original_screen, -1);
