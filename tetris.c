@@ -16,6 +16,7 @@
 #include "matrix.h"
 
 #include "music.h"
+#include "splash.h"
 
 /* ====== REQUIRED CONSTANTS ====== */
 #define CELL_SIZE 16
@@ -110,6 +111,12 @@ int main() {
     /* Clearing both buffers */
     clear_screen(buffer1);
     clear_screen(buffer2);
+
+    /* Show splash screen */
+    if (!show_splash_screen((UINT8 *)buffer1)) {
+        /* (User quit) */
+        return 0;
+    }
 
     /* INITIALIZE GAME MODEL (Tetris State: START!) */
     init_model(&game_model);
