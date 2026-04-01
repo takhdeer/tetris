@@ -17,6 +17,7 @@
 
 #include "music.h"
 #include "splash.h"
+#include "effects.h"
 
 /* ====== REQUIRED CONSTANTS ====== */
 #define CELL_SIZE 16
@@ -277,6 +278,7 @@ int main() {
             }
             game_model.redraw_hold_box = 1;
             game_model.hold_used = 1;
+            play_effect_hold();
         }
     }
 
@@ -298,6 +300,13 @@ int main() {
             game_model.redraw_matrix = 1;
             game_model.redraw_score = 1;
             update_state(&game_model.game_state, lines_this_drop);
+
+            if (lines_this_drop < 4) {
+                play_effect_line_clear();
+            }
+            else {
+                play_effect_tetris_clear();
+            }
         }
 
         init_tetromino(&game_model.piece, next_piece_from_bag(&game_model), 3);
@@ -320,8 +329,24 @@ int main() {
         }
 
         if (game_model.gravity_counter >= gravity_threshold) {
+            old_lines = game_model.game_state.lines_cleared;
             handle_tick(&game_model);
             game_model.gravity_counter = 0;
+
+            lines_this_drop = game_model.game_state.lines_cleared - old_lines;
+            
+            if (lines_this_drop > 0) {
+                game_model.redraw_matrix = 1;
+                game_model.redraw_score = 1;
+
+                if (lines_this_drop < 4) {
+                    play_effect_line_clear();
+                }
+                else {
+                    play_effect_tetris_clear();
+                }
+            }
+
 
             if(game_model.game_state.is_game_over == 1) {
                 quit = 1;

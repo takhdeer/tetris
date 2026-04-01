@@ -3,7 +3,7 @@
 # Authors: Takh, Henry, Aaron
 CC = cc68x
 OBJS = tetris.o input.o renderer.o raster.o cond.o gstate.o matrix.o \
-       next_box.o hold_box.o model.o synch.o tetrom.o psg.o music.o splash.o
+       next_box.o hold_box.o model.o synch.o tetrom.o psg.o music.o effects.o splash.o
 TARGET = tetris.tos
 
 $(TARGET): $(OBJS)
@@ -53,6 +53,9 @@ music.o: music.c music.h psg.h types.h
 
 splash.o: splash.c splash.h types.h
 	$(CC) -c splash.c
+	
+effects.o: effects.c
+	$(CC) -c effects.c
 
 clean:
 	rm *.o

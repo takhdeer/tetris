@@ -140,3 +140,26 @@ void stop_sound()
     write_psg(PSG_VOLUME_C, 0);
     write_psg(PSG_MIXER, 0xFF);
 }
+
+void set_noise(int tuning) {
+    /* guard clause: invalid tuning level given*/
+    if (tuning < 0 || tuning > 31) {
+        return;
+    }
+
+    /* else, it's a valid tuning level */
+    write_psg(PSG_NOISE_TUNE, tuning);
+}
+
+void set_envelope(int shape, unsigned int sustain) {
+    /* guard clause: invalid shape */
+    if (shape < 0 || shape > 15) {
+        return;
+    }
+
+    /* else, it's a valid shape */
+
+    write_psg(11, sustain & 0xFF);          /* envelope fine */
+    write_psg(12, (sustain >> 8) & 0xFF);   /* envelope coarse */
+    write_psg(13, shape);                   /* envelope shape */
+}
