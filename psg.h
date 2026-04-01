@@ -26,6 +26,28 @@ void set_volume(int channel, int volume);
 void enable_channel(int channel, int tone_on, int noise_on);
 void stop_sound();
 
-/* TO DO: Sound Effect Functions */
+/* Sound Effect Functions */
+
+/*------ Function: set_noise ----
+
+PURPOSE:  loads  Noise Register with given tuning
+
+INPUT: tuning level
+
+Output: non but modifies Noise Register
+
+*/
+void set_noise(int tuning);
+
+/*------ Function: set_envelope ----
+
+PURPOSE:  loads PSG envelope control registers w/ a given shape and sustain
+
+INPUT: shape of envelope and sustain level
+
+Output: non but modifies PSG envelope
+
+*/
+void set_envelope(int shape, unsigned int sustain);
 
 #endif
