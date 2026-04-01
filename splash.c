@@ -6,6 +6,8 @@
 #include "splash.h"
 #include "input.h"
 #include <osbind.h>
+#include "renderer.h"
+#include "raster.h"
 
 /**
  * Displays splash screen and waits for user input
@@ -14,8 +16,17 @@
 int show_splash_screen(UINT8 *base) {
     int done = 0;
     char key;
+    int i;
 
-    /* Clear screen (TO DO) */
+    /* Clear screen */
+    clear_screen((UINT32 *)base);
+
+    /* (placeholder) Title */
+    plot_string(base, 100, 288, "TETRONAS");
+
+    /* Instructions */
+    plot_string(base, 330, 228, "PRESS SPACEBAR TO START");
+    plot_string(base, 350, 260, "PRESS Q TO QUIT");
 
     while (!done) {
         if (has_input()) {
@@ -28,8 +39,6 @@ int show_splash_screen(UINT8 *base) {
                 return 0; /* Quit */
             }
         }
-
     }
     return 0;
-
 }

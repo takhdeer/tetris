@@ -118,6 +118,10 @@ int main() {
         return 0;
     }
 
+    /* Clearing both buffers */
+    clear_screen(buffer1);
+    clear_screen(buffer2);
+
     /* INITIALIZE GAME MODEL (Tetris State: START!) */
     init_model(&game_model);
         
