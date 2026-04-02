@@ -123,12 +123,12 @@ int show_splash_screen(UINT8 *base) {
     plot_horizontal_line((UINT32 *)base, 96, 10, 620);
 
     /* Title - bold effect */
-    plot_string((UINT8 *)base, 40, 232, "TETRONAS");
-    plot_string((UINT8 *)base, 41, 232, "TETRONAS");
-    plot_string((UINT8 *)base, 40, 233, "TETRONAS");
+    plot_string((UINT8 *)base, 40, 287, "TETRONAS");
+    plot_string((UINT8 *)base, 41, 287, "TETRONAS");
+    plot_string((UINT8 *)base, 40, 288, "TETRONAS");
 
     /* Subtitle */
-    plot_string((UINT8 *)base, 73, 252, "COMP 2659  2025");
+    plot_string((UINT8 *)base, 73, 262, "COMP 2659  2025");
 
     /* Ground line */
     plot_horizontal_line((UINT32 *)base, 295, 10, 620);
@@ -146,13 +146,13 @@ int show_splash_screen(UINT8 *base) {
 
     /* Menu */
     plot_string((UINT8 *)base, 330, 256, "PRESS 1 TO START");
-    plot_string((UINT8 *)base, 358, 260, "PRESS 0 TO QUIT");
+    plot_string((UINT8 *)base, 358, 260, "PRESS Q TO QUIT");
 
     while (1) {
         if (has_input()) {
             key = get_input();
             if (key == '1') return 1;
-            if (key == '0') return 0;
+            if (key == 'q') return 0;
         }
     }
 
