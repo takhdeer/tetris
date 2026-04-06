@@ -1,5 +1,5 @@
 #include "raster.h"
-
+#include <osbind.h>
 /* Screen dimensions */
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 400
@@ -378,4 +378,17 @@ void plot_string(UINT8 *base, UINT16 row, UINT16 col, char *ch) {
         col += 8;   /* advance one character width */
         ch++;
     }
+}
+
+UINT16 *get_video_base() {
+    UINT8 high;
+    UINT8 mid;
+    long old_ssp;
+
+    old_ssp = Super(0);
+    high = *(volatile UINT8 *)0xFF8201;
+    mid = *(volatile UINT8 *)0xFF8203;
+    Super(old_ssp);
+
+    return (UINT16 *)(((UINT32)high << 16) | ((UINT32)mid << 8));
 }

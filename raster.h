@@ -192,4 +192,21 @@ void plot_character(UINT8 *base, UINT16 row, UINT16 col, char ch);
 */
 void plot_string(UINT8 *base, UINT16 row, UINT16 col, char *ch);
 
+/*----- Function: get_video_base -----
+ PURPOSE: Returns the current frame butter start address by reading
+          the MMU video base registers directly (replaces Physbase).
+ 
+ OUTPUT:  Pointer to the start of the current frame butter.
+*/
+UINT16 *get_video_base();
+
+/*----- Function: set_video_base -----
+ PURPOSE: Sets the frame buffer start address by writing directly to 
+          the MMU base reggisters (replaces Setscreen).
+          the page flip takes effect on the next VSYNC.
+
+ INPUT:   base - 256-byte aligned pointer to the new frame buffer.
+*/
+void set_video_base(UINT16 *base);
+
 #endif

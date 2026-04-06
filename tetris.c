@@ -85,6 +85,8 @@ int main() {
     int center_y;
     int i;
 
+    long old_ssp;
+
     /* Track what was rendered to each buffer */
     Tetromino last_piece_buf1;
     Tetromino last_piece_buf2;
@@ -100,7 +102,7 @@ int main() {
     UINT32 *temp_buffer;
 
     /* Get original fram buffer */
-    original_screen = (UINT32 *)Physbase();
+    original_screen = (UINT32 *)get_video_base();
 
     /* Align second buffer to 256-byte boundary */
     buffer1 = original_screen;
@@ -139,7 +141,9 @@ int main() {
     render_level(&game_model.game_state, (UINT8 *)back_buffer);
 
     /* Display first frame */
-    Setscreen(-1, back_buffer, -1);
+    old_ssp = Super(0);
+    set_video_base((UINT16 *)back_buffer);
+    Super(old_ssp);
     wait_vbl();
 
     /* Swap buffers */
@@ -447,7 +451,9 @@ int main() {
     render_piece(&game_model.piece, back_buffer);
 
     /* Page flip */
-    Setscreen(back_buffer, back_buffer, -1);
+    old_ssp = Super(0);
+    set_video_base((UINT16 *)back_buffer);
+    Super(old_ssp);
     wait_vbl();
 
     /* Save what we just rendered to THIS buffer */
@@ -474,7 +480,9 @@ int main() {
     stop_music();
     printf("Game Over\n");
 
-    Setscreen(original_screen, original_screen, -1);
+    old_ssp = Super(0);
+    set_video_base((UINT16 *)original_screen);
+    Super(old_ssp);
     
     return 0;
 }
