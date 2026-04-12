@@ -448,6 +448,10 @@ int main() {
     uninstall_vbl_isr();
     set_video_base((UINT16 *)original_screen);
     Super(old_ssp);
+
+    clear_screen(buffer1);
+    clear_screen(buffer2);
+    render_game_over((UINT8 *)original_screen, game_model.game_state.score);
     
     return 0;
 }
