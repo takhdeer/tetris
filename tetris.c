@@ -139,7 +139,6 @@ int main() {
     
     /* MAIN TETRIS GAME LOOP */
     while (quit != 1) {
-        render_request = 1;
         /* If Input Pending = Update Model Change REQUESTS */
         if (has_input()) {
             key = get_input(); /* store key press as a master key */
