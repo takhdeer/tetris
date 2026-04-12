@@ -145,6 +145,10 @@ int main() {
     
     /* MAIN TETRIS GAME LOOP */
     while (quit != 1) {
+
+        /* TEMP HARDCODED VALUE TO BYPASS THE VBL ISR BUG! */
+        render_request = 1;
+
         /* If Input Pending = Update Model Change REQUESTS */
         if (has_input()) {
             key = get_input(); /* store key press as a master key */
@@ -255,7 +259,7 @@ int main() {
                     }
                     game_model.redraw_hold_box = 1;
                     game_model.hold_used = 1;
-                    play_effect_hold();
+                    /* play_effect_hold(); */
                 }
             }
 

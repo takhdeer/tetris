@@ -681,6 +681,9 @@ int main() {
 
     while (quit != 1) {
 
+        render_request = 1;
+
+
         if (has_input()) {
             key = get_input();
 
@@ -696,7 +699,7 @@ int main() {
                 else if (scan == UP_ARROW) {
                     game_model.request_rotate = 1;
                 }
-                else if (scan == DOWN_ARROW) {
+                else if (key_state[0x50]) {
                     game_model.request_soft_drop = 1;
                 }
             }
@@ -790,7 +793,7 @@ int main() {
                     }
                     game_model.redraw_hold_box = 1;
                     game_model.hold_used = 1;
-                    play_effect_hold();
+
                 }
             }
 
