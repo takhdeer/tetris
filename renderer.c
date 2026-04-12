@@ -24,6 +24,7 @@ void render_next_box(UINT32 *base, const NextBox *box) {
     init_tetromino(&preview_piece, next_type, (NEXT_BOX_COL + 16) / CELL_SIZE);
     preview_piece.row = (NEXT_BOX_ROW + 16) / CELL_SIZE;
 
+    plot_string((UINT8 *)base, NEXT_BOX_ROW - 12, NEXT_BOX_COL + 24, "NEXT");
     plot_rectangle(base, NEXT_BOX_ROW, NEXT_BOX_COL, NEXT_BOX_SIZE, NEXT_BOX_SIZE);
     render_raw_piece(&preview_piece, base);
 }
@@ -62,6 +63,8 @@ void render_matrix(UINT32 *base, const Matrix *gameGrid) {
 
 void render_hold_box(UINT32 *base, const HoldBox *heldbox) {
     Tetromino temp_piece;
+
+    plot_string((UINT8 *)base, HOLD_BOX_ROW - 12, HOLD_BOX_COL + 24, "HOLD");
 
     /* Case 1: render an occupied HoldBox with its current Tetromino */
     if (heldbox->contains == 1) {
