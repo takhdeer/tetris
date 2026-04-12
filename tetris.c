@@ -16,6 +16,7 @@
 #include "splash.h"
 #include "effects.h"
 #include "vbl_inst.h"
+#include "gravity.h"
 
 /* ====== CONSTANTS ====== */
 #define CELL_SIZE 16
@@ -139,6 +140,7 @@ int main() {
     
     /* MAIN TETRIS GAME LOOP */
     while (quit != 1) {
+        render_request = 1;
         /* If Input Pending = Update Model Change REQUESTS */
         if (has_input()) {
             key = get_input(); /* store key press as a master key */
@@ -291,37 +293,31 @@ int main() {
                 game_model.request_hard_drop = 0;
             }
 
+            /*UPADTING GRAVITY */
+            update_gravity();
             /* Process gravity drop (set by ISR via update_gravity) */
-            else {
-                game_model.gravity_counter++;
+            
+            if (drop_requested) {
+                old_lines = game_model.game_state.lines_cleared;
+                handle_tick(&game_model);
+                drop_requested = 0;
 
-                gravity_threshold = 50 - (game_model.game_state.level * 5);
-                if (gravity_threshold < 5) {
-                    gravity_threshold = 5;
+                lines_this_drop = game_model.game_state.lines_cleared - old_lines;
+                    
+                if (lines_this_drop > 0) {
+                    game_model.redraw_matrix = 1;
+                    game_model.redraw_score = 1;
+
+                    if (lines_this_drop < 4) {
+                        play_effect_line_clear();
+                    }
+                    else {
+                        play_effect_tetris_clear();
+                    }
                 }
 
-                if (game_model.gravity_counter >= gravity_threshold) {
-                    old_lines = game_model.game_state.lines_cleared;
-                    handle_tick(&game_model);
-                    game_model.gravity_counter = 0;
-
-                    lines_this_drop = game_model.game_state.lines_cleared - old_lines;
-                    
-                    if (lines_this_drop > 0) {
-                        game_model.redraw_matrix = 1;
-                        game_model.redraw_score = 1;
-
-                        if (lines_this_drop < 4) {
-                            play_effect_line_clear();
-                        }
-                        else {
-                            play_effect_tetris_clear();
-                        }
-                    }
-
-                    if(game_model.game_state.is_game_over == 1) {
-                        quit = 1;
-                    }
+                if(game_model.game_state.is_game_over == 1) {
+                    quit = 1;
                 }
             }
 
