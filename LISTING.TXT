@@ -1,0 +1,38 @@
+Gen Macro Assembler Copyright ½ HiSoft 1985-93
+All Rights Reserved - version 3.10
+
+Assembling ikbd_isr.s
+Pass 1
+Pass 2
+Error: undefined symbol at line 71 in file ikbd_isr.s
+   71 T  0000003E 13C00000000E                 move.b      d0,_mouse_buttonsp q      ; $F8=none, $F9=right, $FA=left, $FB=both
+Error: undefined symbol at line 83 in file ikbd_isr.s
+   83 T  0000005C 41F90000000A                 lea         _key_statep,qa0
+Error: undefined symbol at line 87 in file ikbd_isr.s
+   87 T  00000068 41F90000000B                 lea         _scan_queuep,qa0         ; a0 -> scan_queue struct
+Error: undefined symbol at line 109 in file ikbd_isr.s
+  109 T  0000009C 41F90000000A                 lea         _key_statep,qa0
+Error: undefined symbol at line 128 in file ikbd_isr.s
+  128 T  000000CA D1B900000008                 add.l       d0,_mouse_xp q
+Error: undefined symbol at line 131 in file ikbd_isr.s
+  131 T  000000D0 4AB900000008                 tst.l       _mouse_xp q
+Error: undefined symbol at line 133 in file ikbd_isr.s
+  133 T  000000DA 42B900000008                 clr.l       _mouse_xp q
+Error: undefined symbol at line 136 in file ikbd_isr.s
+  136 T  000000E4 0CB90000027F00000008         cmpi.l      #SCREEN_MAX_X,_mouse_xp q
+Error: undefined symbol at line 138 in file ikbd_isr.s
+  138 T  000000F2 23FC0000027F00000008         move.l      #SCREEN_MAX_X,_mouse_xp q
+Error: undefined symbol at line 144 in file ikbd_isr.s
+  144 T  00000102 D1B900000008                 add.l       d0,_mouse_yp q
+Error: undefined symbol at line 147 in file ikbd_isr.s
+  147 T  00000108 4AB900000008                 tst.l       _mouse_yp q
+Error: undefined symbol at line 149 in file ikbd_isr.s
+  149 T  00000112 42B900000008                 clr.l       _mouse_yp q
+Error: undefined symbol at line 152 in file ikbd_isr.s
+  152 T  0000011C 0CB90000018F00000008         cmpi.l      #SCREEN_MAX_Y,_mouse_yp q
+Error: undefined symbol at line 154 in file ikbd_isr.s
+  154 T  0000012A 23FC0000018F00000008         move.l      #SCREEN_MAX_Y,_mouse_yp q
+
+14 errors found
+164 lines assembled into 330 bytes, DRI linkable relocatable code
+6620 bytes used out of 674172, took 0.3 seconds

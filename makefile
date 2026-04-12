@@ -5,7 +5,7 @@ CC = cc68x
 AS = gen
 OBJS = tetris.o input.o renderer.o raster.o cond.o gstate.o matrix.o \
        next_box.o hold_box.o model.o synch.o tetrom.o psg.o music.o effects.o splash.o \
-       setvbase.o vbl_isr.o vbl_inst.o
+       setvbase.o vbl_isr.o vbl_inst.o ikbd.o ikbd_isr.o
 
 TARGET = tetris.tos
 
@@ -68,6 +68,12 @@ vbl_isr.o: vbl_isr.s
 
 vbl_inst.o: vbl_inst.c
 	$(CC) -c vbl_inst.c
+
+ikbd.o: ikbd.c ikbd.h types.h
+	$(CC) -c ikbd.c
+
+ikbd_isr.o: ikbd_isr.s
+	$(AS) ikbd_isr.s -L2
 
 clean:
 	rm *.o

@@ -16,6 +16,7 @@
 #include "splash.h"
 #include "effects.h"
 #include "vbl_inst.h"
+#include "ikbd.h"
 
 /* ====== CONSTANTS ====== */
 #define CELL_SIZE 16
@@ -92,9 +93,14 @@ int main() {
     clear_screen(buffer1);
     clear_screen(buffer2);
 
+    /* IKBD ISR INSTALL */
+    disable_midi();
+    install_ikbd_isr();
+
     /* Show splash screen */
     if (!show_splash_screen((UINT8 *)buffer1)) {
-        /* (User quit) */
+        remove_ikbd_isr();
+        enable_midi();
         return 0;
     }
 
@@ -442,6 +448,8 @@ int main() {
     }
 
     stop_music();
+    remove_ikbd_isr();
+    enable_midi();
 
     old_ssp = Super(0);
     uninstall_vbl_isr();
