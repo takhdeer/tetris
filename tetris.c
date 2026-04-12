@@ -445,7 +445,7 @@ int main() {
             which_buffer = 1 - which_buffer;
 
             /* Update music */
-            /*update_music(timeElapsed);*/
+            update_music(1);
 
             render_request = 0;
         }

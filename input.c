@@ -14,6 +14,8 @@
 /* static long last_raw = 0; */   /*store the full raw value of last char*/
 
 static UINT8 last_scan = 0;
+#define SCREEN_W 640
+#define SCREEN_H 400
 
 int has_input() {
     return (scan_queue.count > 0);
@@ -41,4 +43,39 @@ char get_input() {
 
 char get_scan_code() {
     return (char)last_scan;
+}
+
+int get_mouse_x() {
+    return mouse_x;
+}
+
+int get_mouse_y() {
+    return mouse_y;
+}
+
+int get_mouse_buttons() {
+    return mouse_buttons;
+}
+
+void update_mouse(int dx, int dy) {
+    mouse_x += dx;
+    mouse_y += dy;
+
+    if (mouse_x < 0) {
+        mouse_x = 0;
+    }
+    if (mouse_x >= SCREEN_W){
+        mouse_x = SCREEN_W - 1;
+    }
+
+    if (mouse_y < 0) {
+        mouse_y = 0;
+    }
+    if (mouse_y >= SCREEN_H){
+        mouse_y = SCREEN_H - 1;
+    }
+}
+
+void set_mouse_buttons(int buttons) {
+    mouse_buttons = buttons;
 }

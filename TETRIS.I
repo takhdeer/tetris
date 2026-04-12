@@ -167,6 +167,16 @@ int has_input();
 char get_input();
 
 char get_scan_code();
+
+int get_mouse_x();
+
+int get_mouse_y();
+
+int get_mouse_buttons();
+
+void update_mouse(int dx, int dy);
+
+void set_mouse_buttons(int buttons);
 # 6 "tetris.c" 2
 # 1 "./synch.h" 1
 # 1 "./model.h" 1
@@ -681,6 +691,7 @@ int main() {
 
     while (quit != 1) {
 
+
         render_request = 1;
 
 
@@ -699,7 +710,7 @@ int main() {
                 else if (scan == UP_ARROW) {
                     game_model.request_rotate = 1;
                 }
-                else if (key_state[0x50]) {
+                else if (scan == DOWN_ARROW) {
                     game_model.request_soft_drop = 1;
                 }
             }
@@ -979,7 +990,7 @@ int main() {
             which_buffer = 1 - which_buffer;
 
 
-
+            update_music(1);
 
             render_request = 0;
         }

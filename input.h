@@ -29,4 +29,14 @@ char get_input();
 
 char get_scan_code();
 
+int get_mouse_x();
+
+int get_mouse_y();
+
+int get_mouse_buttons();
+
+void update_mouse(int dx, int dy);
+
+void set_mouse_buttons(int buttons);
+
 #endif
