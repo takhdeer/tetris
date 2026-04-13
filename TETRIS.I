@@ -534,6 +534,8 @@ void install_vbl_isr();
 
 
 void uninstall_vbl_isr();
+
+void vbl_handler();
 # 18 "tetris.c" 2
 # 1 "./ikbd.h" 1
 # 1 "./types.h" 1
@@ -574,7 +576,11 @@ void unmask_ikbd(void);
 
 extern void ikbd_isr(void);
 # 19 "tetris.c" 2
-# 33 "tetris.c"
+# 1 "./gravity.h" 1
+# 10 "./gravity.h"
+void update_gravity();
+# 20 "tetris.c" 2
+# 34 "tetris.c"
 Model game_model;
 volatile int render_request = 0;
 volatile int drop_requested = 0;
@@ -670,7 +676,7 @@ int main() {
 
 
     old_ssp = _trap_1_wl((short)0x20,(long)(0)) ;
-    install_vbl_isr();
+
     set_video_base((UINT16 *)back_buffer);
     _trap_1_wl((short)0x20,(long)(old_ssp)) ;
 
@@ -690,9 +696,10 @@ int main() {
 
 
     while (quit != 1) {
-
-
         render_request = 1;
+        update_gravity();
+
+        update_music(1);
 
 
         if (has_input()) {
@@ -1001,7 +1008,7 @@ int main() {
     enable_midi();
 
     old_ssp = _trap_1_wl((short)0x20,(long)(0)) ;
-    uninstall_vbl_isr();
+
     set_video_base((UINT16 *)original_screen);
     _trap_1_wl((short)0x20,(long)(old_ssp)) ;
 

@@ -13,4 +13,6 @@ void install_vbl_isr();
 */
 void uninstall_vbl_isr();
 
+void vbl_handler(); 
+
 #endif

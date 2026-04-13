@@ -17,6 +17,7 @@
 #include "effects.h"
 #include "vbl_inst.h"
 #include "ikbd.h"
+#include "gravity.h"
 
 /* ====== CONSTANTS ====== */
 #define CELL_SIZE 16
@@ -125,7 +126,7 @@ int main() {
 
     /* Install ISR and flip to first frame */
     old_ssp = Super(0);
-    install_vbl_isr();
+    /* install_vbl_isr(); */
     set_video_base((UINT16 *)back_buffer);
     Super(old_ssp);
 
@@ -145,9 +146,10 @@ int main() {
     
     /* MAIN TETRIS GAME LOOP */
     while (quit != 1) {
-
-        /* TEMP HARDCODED VALUE TO BYPASS THE VBL ISR BUG! */
         render_request = 1;
+        update_gravity();
+
+        update_music(1);
 
         /* If Input Pending = Update Model Change REQUESTS */
         if (has_input()) {
@@ -456,7 +458,7 @@ int main() {
     enable_midi();
 
     old_ssp = Super(0);
-    uninstall_vbl_isr();
+    /* uninstall_vbl_isr(); */
     set_video_base((UINT16 *)original_screen);
     Super(old_ssp);
 
